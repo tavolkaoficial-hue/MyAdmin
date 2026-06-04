@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyAdmin - Registro Biométrico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght=500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020305; 
+            color: #ffffff;
+            overflow-x: hidden;
+            perspective: 1600px;
+        }
+
+        .font-header { font-family: 'Space Grotesk', sans-serif; }
+
+        /* REGLAS DE CONTRASTE EN NARANJA PREMIUM */
+        h2, h3, h4 {
+            color: #d97706 !important; 
+            letter-spacing: 0.03em;
+        }
+        
+        /* Lienzo de Partículas Dinámicas de Fondo */
+        #particleCanvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Rejilla de Deformación Espacial (Radar Técnico) */
+        .grid-cyber {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(245, 158, 11, 0.015) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, rgba(245, 158, 11, 0.015) 1.5px, transparent 1px);
+            background-size: 60px 60px;
+            background-position: center;
+            mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0,0,0,1) 10%, rgba(0,0,0,0.3) 40%, transparent 75%);
+            -webkit-mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0,0,0,1) 10%, rgba(0,0,0,0.3) 40%, transparent 75%);
+            z-index: 2;
+            pointer-events: none;
+            transform: translateZ(0);
+        }
+
+        /* Paneles de Cristal Gris Oscuro Premium Platino Pro */
+        .glass-card-pro {
+            background: linear-gradient(135deg, rgba(22, 26, 36, 0.97) 0%, rgba(14, 17, 24, 0.99) 100%) !important;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 40px 80px rgba(0, 0, 0, 0.9),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            transform-style: preserve-3d;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card-pro:hover {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.95), 0 0 35px rgba(245, 158, 11, 0.15);
+        }
+
+        /* Inputs y Selectores de Consola */
+        .input-cyber {
+            background: rgba(4, 5, 8, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.9);
+            color: #ffffff !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .input-cyber:focus {
+            border-color: #f59e0b;
+            background: #06080c;
+            box-shadow: 
+                inset 0 2px 6px rgba(0, 0, 0, 0.95),
+                0 0 25px rgba(245, 158, 11, 0.2);
+        }
+
+        /* Botón Estilo Energía Cinética */
+        .btn-glow-pro {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%);
+            background-size: 200% 200%;
+            background-position: 0% 50%;
+            box-shadow: 
+                0 0 30px rgba(245, 158, 11, 0.2),
+                0 6px 0 #78350f,
+                inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-glow-pro:hover {
+            background-position: 100% 50%;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 0 40px rgba(245, 158, 11, 0.4),
+                0 8px 0 #78350f,
+                inset 0 1px 2px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Logotipo corporativo centrado grande con resplandor premium */
+        .logo-header-branding {
+            filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 30px rgba(245, 158, 11, 0.3));
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+        .logo-header-branding:hover {
+            transform: scale(1.02);
+            filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 35px rgba(245, 158, 11, 0.45));
+        }
+
+        .neon-border { box-shadow: 0 0 15px rgba(245, 158, 11, 0.3); }
+        
+        @keyframes orbit-pro-1 {
+            0% { transform: rotate3d(1, 1, 1, 0deg) translateY(0px); }
+            50% { transform: rotate3d(1, 1, 1, 180deg) translateY(-20px); }
+            100% { transform: rotate3d(1, 1, 1, 360deg) translateY(0px); }
+        }
+        .meta-shape {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.03;
+            transform-style: preserve-3d;
+            z-index: 3;
+        }
+
+        /* SELECTOR DE IDIOMA PREMIUM IMPLANTADO */
+        .lang-selector {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .lang-selector:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col justify-between p-4 bg-[#020305]">
+
+    <canvas id="particleCanvas"></canvas>
+    <div class="grid-cyber" id="gridBg"></div>
+
+    <div class="meta-shape top-36 left-16 w-32 h-32 border-2 border-dashed border-amber-500 rounded-2xl" style="animation: orbit-pro-1 25s infinite linear;"></div>
+
+    <header class="text-center py-6 relative z-10 flex flex-col items-center justify-center space-y-3">
+        <div class="absolute top-2 right-2 lang-selector flex items-center rounded-full p-1 text-[9px] font-mono font-bold z-20">
+            <button onclick="changeLanguage('es')" id="btn-es" class="px-2 py-1 rounded-full transition-all">ES</button>
+            <button onclick="changeLanguage('en')" id="btn-en" class="px-2 py-1 rounded-full transition-all">EN</button>
+        </div>
+        
+        <img src="img/ADL.png" alt="ADL Skilled Labor & Demolition" class="h-24 w-auto max-h-[96px] object-contain logo-header-branding" />
+        <p data-i18n="header_subtitle" class="text-xs font-mono uppercase tracking-widest text-zinc-400">Onboarding Digital de Personal</p>
+    </header>
+
+    <main class="max-w-md w-full mx-auto relative z-10 glass-card-pro rounded-3xl p-6 my-auto space-y-6 shadow-2xl">
+        
+        <div id="bloqueCarga" class="text-center py-8 space-y-4">
+            <div class="animate-spin inline-block w-8 h-8 border-4 border-t-amber-500 border-zinc-800 rounded-full"></div>
+            <p class="text-sm text-zinc-300 font-medium" id="txtEstadoCarga" data-i18n="loading_init">Validando token de invitación y cargando IA biométrica...</p>
+        </div>
+
+        <div id="contenidoRegistro" class="hidden space-y-6">
+            <div class="border-b border-zinc-800/80 pb-3">
+                <h2 class="text-lg font-bold font-header text-white" id="saludoEmpleado">Bienvenido</h2>
+                <p data-i18n="register_desc" class="text-xs text-zinc-400 mt-0.5">Completa tu documentación para activar tu usuario de manera segura.</p>
+            </div>
+
+            <div class="space-y-4" id="paso1">
+                <h3 data-i18n="step1_title" class="text-xs font-bold text-amber-500 uppercase tracking-wider font-mono">Paso 1: Datos de Identidad</h3>
+                <div>
+                    <label data-i18n="label_id_number" class="block text-xs text-zinc-400 mb-1">Número de Cédula / Documento</label>
+                    <input type="text" id="docNumero" class="w-full input-cyber rounded-xl px-3 py-2 text-sm focus:outline-none transition">
+                </div>
+                <div>
+                    <label data-i18n="label_id_photo" class="block text-xs text-zinc-400 mb-1">Foto de tu Documento de Identidad</label>
+                    <input type="file" id="docFoto" accept="image/*" class="w-full text-xs text-zinc-400 input-cyber rounded-xl file:bg-zinc-800 file:border-none file:text-white file:px-3 file:py-2 file:mr-3 file:text-xs hover:file:bg-zinc-700 transition">
+                </div>
+                <button onclick="irAlPaso2()" data-i18n="btn_next" class="w-full btn-glow-pro text-white text-sm font-bold py-2.5 rounded-xl transition">
+                    Siguiente: Configurar Rostro →
+                </button>
+            </div>
+
+            <div class="space-y-4 hidden" id="paso2">
+                <h3 data-i18n="step2_title" class="text-xs font-bold text-amber-500 uppercase tracking-wider font-mono">Paso 2: Registro de Face ID</h3>
+                <p data-i18n="step2_desc" class="text-xs text-zinc-400">Ubica tu rostro frente a la cámara frontal en un espacio bien iluminado para generar tu firma biométrica.</p>
+                
+                <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border border-amber-500/20 neon-border flex items-center justify-center">
+                    <video id="videoCamara" autoplay muted playsinline class="w-full h-full object-cover scale-x-[-1]"></video>
+                    <div id="marcadorFacial" class="absolute border-2 border-dashed border-green-400 rounded-full opacity-40 w-48 h-48 pointer-events-none"></div>
+                </div>
+
+                <button id="btnEscanear" onclick="capturarFaccionesFaciales()" class="w-full bg-amber-500 hover:bg-amber-600 text-black text-sm font-bold py-3 rounded-xl transition shadow-lg flex justify-center items-center space-x-2">
+                    <span id="btnEscanearTexto" data-i18n="btn_scan">📸 Escanear y Guardar Perfil</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="text-center py-4 text-[10px] text-zinc-600 font-mono relative z-10 tracking-wide">
+        ADL Skilled Labor & Demolition • <span data-i18n="footer_sec">SecurID Cifrado SSL</span>
+    </footer>
+
+    <script>
+        // TRADUCCIONES OFICIALES DISPONIBLES EN AMBOS IDIOMAS
+        const translations = {
+            es: {
+                header_subtitle: "Onboarding Digital de Personal",
+                loading_init: "Validando token de invitación y cargando IA biométrica...",
+                register_desc: "Completa tu documentación para activar tu usuario de manera segura.",
+                step1_title: "Paso 1: Datos de Identidad",
+                label_id_number: "Número de Cédula / Documento",
+                label_id_photo: "Foto de tu Documento de Identidad",
+                btn_next: "Siguiente: Configurar Rostro →",
+                step2_title: "Paso 2: Registro de Face ID",
+                step2_desc: "Ubica tu rostro frente a la cámara frontal en un espacio bien iluminado para generar tu firma biométrica.",
+                btn_scan: "📸 Escanear y Guardar Perfil",
+                footer_sec: "SecurID Cifrado SSL",
+                
+                // Textos de Carga Dinámica y Alertas
+                token_missing: "Falta el token de autorización. Solicita un nuevo enlace al administrador.",
+                loading_models: "Cargando algoritmos de reconocimiento facial...",
+                loading_ia_error: "Error al inicializar los módulos de IA. Revisa tu conexión a internet.",
+                loading_credentials: "Validando credenciales únicas...",
+                network_error: "Fallo de red al verificar credenciales con el servidor.",
+                form_alert: "Por favor ingresa tu número de documento y sube la foto de tu cédula.",
+                camera_error: "No se pudo acceder a la cámara frontal. Otorga los permisos en tu navegador.",
+                analyzing_face: "Analizando fisonomía...",
+                no_face_detected: "No se detecta ningún rostro en pantalla. Asegúrate de tener buena luz y mirar fijamente.",
+                upload_error: "Fallo crítico al subir el paquete biométrico.",
+                server_error: "Error al procesar: ",
+                welcome_str: "Hola, ",
+                
+                // Vista de Éxito Final
+                success_title: "¡Registro Completado con Éxito!",
+                success_desc: "Tus datos, documento y Face ID han sido guardados de manera segura. Ya puedes cerrar esta ventana."
+            },
+            en: {
+                header_subtitle: "Digital Workforce Onboarding",
+                loading_init: "Validating invitation token and launching biometric AI...",
+                register_desc: "Fill out your documentation to securely activate your account profile.",
+                step1_title: "Step 1: Identification Data",
+                label_id_number: "ID Card / SSN / Document Number",
+                label_id_photo: "Upload ID Card Photo",
+                btn_next: "Next: Setup Face ID →",
+                step2_title: "Step 2: Face ID Registration",
+                step2_desc: "Position your face within the front camera frame in a well-lit environment to create your biometric stamp.",
+                btn_scan: "📸 Scan and Save Profile",
+                footer_sec: "SecurID SSL Encrypted",
+                
+                // Textos de Carga Dinámica y Alertas
+                token_missing: "Authorization token is missing. Ask management for a new sign-up link.",
+                loading_models: "Loading facial mesh assessment matrix...",
+                loading_ia_error: "Critical failure initializing AI engines. Verify your web connection.",
+                loading_credentials: "Validating secure unique credentials...",
+                network_error: "Network breakdown verifying verification token with server.",
+                form_alert: "Please enter your document ID code and attach a valid ID picture.",
+                camera_error: "Front camera stream inaccessible. Enable device hardware permissions.",
+                analyzing_face: "Analyzing biometric data...",
+                no_face_detected: "Face not found inside frame. Ensure proper brightness and stare directly.",
+                upload_error: "Critical database pipeline crash uploading biometric package.",
+                server_error: "Processing error: ",
+                welcome_str: "Hello, ",
+                
+                // Vista de Éxito Final
+                success_title: "Registration Successfully Completed!",
+                success_desc: "Your records, document data, and Face ID profile have been securely established. You may now close this window."
+            }
+        };
+
+        let currentLang = 'es';
+        let stringNombreEmpleadoActual = "Bienvenido";
+
+        // GESTOR PRINCIPAL DE TRADUCCIÓN INTERACTIVA
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('adl_lang', lang);
+
+            // Cambiar textos estáticos vinculados con data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            // Reajustar el saludo si el empleado ya está mapeado en la sesión
+            const saludoElem = document.getElementById("saludoEmpleado");
+            if (saludoElem) {
+                if (stringNombreEmpleadoActual !== "Bienvenido" && stringNombreEmpleadoActual !== "Welcome") {
+                    saludoElem.textContent = translations[lang]['welcome_str'] + stringNombreEmpleadoActual;
+                } else {
+                    saludoElem.textContent = lang === 'es' ? "Bienvenido" : "Welcome";
+                }
+            }
+
+            // Cambiar estilos de los botones selectores
+            const btnEs = document.getElementById('btn-es');
+            const btnEn = document.getElementById('btn-en');
+            if (lang === 'es') {
+                btnEs.className = "px-2 py-1 rounded-full bg-amber-500 text-black";
+                btnEn.className = "px-2 py-1 rounded-full text-zinc-400 hover:text-white";
+            } else {
+                btnEn.className = "px-2 py-1 rounded-full bg-sky-500 text-black";
+                btnEs.className = "px-2 py-1 rounded-full text-zinc-400 hover:text-white";
+            }
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const TOKEN = urlParams.get('token');
+        let idUsuarioReal = null;
+        let descriptorFacialGuardar = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Sincronizar idioma heredado o por defecto
+            const savedLang = localStorage.getItem('adl_lang') || 'es';
+            changeLanguage(savedLang);
+
+            if (!TOKEN) {
+                mostrarError(translations[currentLang]['token_missing']);
+                return;
+            }
+            await inicializarModelosIA();
+            verificarTokenServidor();
+        });
+
+        async function inicializarModelosIA() {
+            try {
+                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+                document.getElementById("txtEstadoCarga").textContent = translations[currentLang]['loading_models'];
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+            } catch (err) {
+                console.error(err);
+                mostrarError(translations[currentLang]['loading_ia_error']);
+            }
+        }
+
+        function verificarTokenServidor() {
+            document.getElementById("txtEstadoCarga").textContent = translations[currentLang]['loading_credentials'];
+            
+            fetch(`http://localhost/MyAdmin/validar_token.php?token=${TOKEN}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        idUsuarioReal = res.id;
+                        stringNombreEmpleadoActual = res.nombre;
+                        document.getElementById("saludoEmpleado").textContent = translations[currentLang]['welcome_str'] + res.nombre;
+                        document.getElementById("bloqueCarga").classList.add("hidden");
+                        document.getElementById("contenidoRegistro").classList.remove("hidden");
+                    } else {
+                        mostrarError(res.message);
+                    }
+                })
+                .catch(() => mostrarError(translations[currentLang]['network_error']));
+        }
+
+        function irAlPaso2() {
+            const num = document.getElementById("docNumero").value.trim();
+            const foto = document.getElementById("docFoto").files[0];
+
+            if (!num || !foto) {
+                alert(translations[currentLang]['form_alert']);
+                return;
+            }
+
+            document.getElementById("paso1").classList.add("hidden");
+            document.getElementById("paso2").classList.remove("hidden");
+            encenderCamaraMóvil();
+        }
+
+        function encenderCamaraMóvil() {
+            const video = document.getElementById("videoCamara");
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(stream => { video.srcObject = stream; })
+                .catch(err => {
+                    alert(translations[currentLang]['camera_error']);
+                });
+        }
+
+        async function capturarFaccionesFaciales() {
+            const video = document.getElementById("videoCamara");
+            const btnText = document.getElementById("btnEscanearTexto");
+            const btn = document.getElementById("btnEscanear");
+            
+            btn.disabled = true;
+            btnText.textContent = translations[currentLang]['analyzing_face'];
+
+            const deteccion = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                                           .withFaceLandmarks()
+                                           .withFaceDescriptor();
+
+            if (!deteccion) {
+                alert(translations[currentLang]['no_face_detected']);
+                btn.disabled = false;
+                btnText.textContent = translations[currentLang]['btn_scan'];
+                return;
+            }
+
+            descriptorFacialGuardar = JSON.stringify(Array.from(deteccion.descriptor));
+            
+            const stream = video.srcObject;
+            if(stream) stream.getTracks().forEach(track => track.stop());
+
+            enviarPaqueteFinalServidor();
+        }
+
+        function enviarPaqueteFinalServidor() {
+            const formData = new FormData();
+            formData.append('id', idUsuarioReal);
+            formData.append('documento', document.getElementById("docNumero").value);
+            formData.append('foto_cedula', document.getElementById("docFoto").files[0]);
+            formData.append('biometrico', descriptorFacialGuardar);
+
+            fetch('http://localhost/MyAdmin/procesar_registro_empleado.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.status === 'success') {
+                    document.body.innerHTML = `
+                        <div class="min-h-screen flex flex-col items-center justify-center p-6 text-center space-y-4 bg-[#020305]">
+                            <span class="text-5xl">✅</span>
+                            <h1 class="text-xl font-bold text-amber-500 font-header">${translations[currentLang]['success_title']}</h1>
+                            <p class="text-sm text-zinc-300 max-w-xs">${translations[currentLang]['success_desc']}</p>
+                        </div>
+                    `;
+                } else {
+                    alert(translations[currentLang]['server_error'] + res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert(translations[currentLang]['upload_error']);
+            });
+        }
+
+        function mostrarError(msg) {
+            const bloque = document.getElementById("bloqueCarga");
+            bloque.innerHTML = `
+                <div class="space-y-4 py-4">
+                    <span class="text-5xl block text-amber-500">⚠️</span>
+                    <p class="text-sm text-zinc-200 font-medium px-4 text-center leading-relaxed">${msg}</p>
+                </div>`;
+        }
+
+        /* --- MOTOR DE PARTÍCULAS MEJORADO Y DE ALTA VISIBILIDAD --- */
+        (function() {
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            class Particle {
+                constructor() {
+                    this.init();
+                }
+                init() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.speedX = (Math.random() - 0.5) * 0.4; 
+                    this.speedY = (Math.random() - 0.5) * 0.4;
+                    this.radius = Math.random() * 1.5 + 0.5;
+                    this.color = (Math.random() > 0.5) ? 'rgba(245, 158, 11, 0.6)' : 'rgba(255, 255, 255, 0.2)';
+                }
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+
+            function createParticles() {
+                const count = Math.min(Math.floor((canvas.width * canvas.height) / 15000), 100);
+                for (let i = 0; i < count; i++) {
+                    particles.push(new Particle());
+                }
+            }
+            createParticles();
+
+            function connect() {
+                for (let a = 0; a < particles.length; a++) {
+                    for (let b = a; b < particles.length; b++) {
+                        let distance = ((particles[a].x - particles[b].x) * (particles[a].x - particles[b].x))
+                            + ((particles[a].y - particles[b].y) * (particles[a].y - particles[b].y));
+                        if (distance < 150 * 150) {
+                            let opacity = 1 - (distance / (150 * 150));
+                            ctx.strokeStyle = `rgba(245, 158, 11, ${opacity * 0.25})`;
+                            ctx.lineWidth = 0.6;
+                            ctx.beginPath();
+                            ctx.moveTo(particles[a].x, particles[a].y);
+                            ctx.lineTo(particles[b].x, particles[b].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                    particles[i].draw();
+                }
+                connect();
+                requestAnimationFrame(animate);
+            }
+            animate();
+
+            // Seguimiento del mouse para efecto de máscara en rejilla
+            document.addEventListener('mousemove', (e) => {
+                const grid = document.getElementById('gridBg');
+                if(grid) {
+                    grid.style.setProperty('--mouse-x', `${e.clientX}px`);
+                    grid.style.setProperty('--mouse-y', `${e.clientY}px`);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Control de Obras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&family=Space+Grotesk:wght=500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020305; 
+            color: #ffffff;
+            overflow-x: hidden;
+            perspective: 1600px;
+        }
+
+        .font-header { font-family: 'Space Grotesk', sans-serif; }
+
+        /* REGLAS GLOBALES DE CONTRASTE CLARO PARA TEXTOS */
+        h1, h2, h3, h4, h5, h6 {
+            color: #ce831b; 
+        }
+        
+        span, p, th, td, div, label, strong {
+            color: rgba(240, 244, 255, 0.9); 
+        }
+
+        .text-amber-500, .text-amber-400, [class*="text-amber-"] { color: #f59e0b !important; }
+        .text-rose-400, [class*="text-rose-"] { color: #fb7185 !important; }
+        .text-zinc-400, .text-zinc-500 { color: #a1a1aa !important; }
+
+        /* Lienzo de Datos e Interconexiones Cuánticas */
+        #particleCanvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Rejilla de Deformación Espacial (Radar Técnico) */
+        .grid-cyber {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(245, 158, 11, 0.015) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, rgba(245, 158, 11, 0.015) 1.5px, transparent 1px);
+            background-size: 60px 60px;
+            background-position: center;
+            mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0,0,0,1) 10%, rgba(0,0,0,0.3) 40%, transparent 75%);
+            -webkit-mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0,0,0,1) 10%, rgba(0,0,0,0.3) 40%, transparent 75%);
+            z-index: 2;
+            pointer-events: none;
+            transform: translateZ(0);
+        }
+
+        /* Paneles de Cristal Gris Oscuro Premium Platino Pro */
+        .glass-card-pro {
+            background: linear-gradient(135deg, rgba(22, 26, 36, 0.95) 0%, rgba(14, 17, 24, 0.98) 100%) !important;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 40px 80px rgba(0, 0, 0, 0.85),
+                inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            transform-style: preserve-3d;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card-pro:hover {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.95), 0 0 35px rgba(245, 158, 11, 0.15);
+        }
+
+        .sub-panel-industrial {
+            background: rgba(10, 12, 18, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .horas-lab-container {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.6rem !important; 
+            align-items: flex-start;
+        }
+
+        .input-cyber {
+            background: rgba(4, 5, 8, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.9);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .input-cyber:focus {
+            border-color: #f59e0b;
+            background: #06080c;
+            box-shadow: 
+                inset 0 2px 6px rgba(0, 0, 0, 0.95),
+                0 0 25px rgba(245, 158, 11, 0.2);
+        }
+
+        .fila-seleccionada { 
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.02) 100%) !important; 
+            box-shadow: inset 4px 0 0 #f59e0b;
+        }
+
+        .btn-glow-pro {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #92400e 100%);
+            background-size: 200% 200%;
+            background-position: 0% 50%;
+            box-shadow: 
+                0 0 30px rgba(245, 158, 11, 0.2),
+                0 6px 0 #78350f,
+                inset 0 1px 1px rgba(255, 255, 255, 0.3);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-glow-pro:hover {
+            background-position: 100% 50%;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 0 40px rgba(245, 158, 11, 0.4),
+                0 8px 0 #78350f,
+                inset 0 1px 2px rgba(255, 255, 255, 0.4);
+        }
+        .btn-glow-pro:active {
+            transform: translateY(6px);
+            box-shadow: 
+                0 0 15px rgba(245, 158, 11, 0.1),
+                0 1px 0 #78350f;
+        }
+
+        .logo-nav-branding {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.75)) drop-shadow(0 0 20px rgba(245, 158, 11, 0.2));
+            transition: filter 0.3s ease;
+        }
+        .logo-nav-branding:hover {
+            filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 25px rgba(245, 158, 11, 0.35));
+        }
+
+        .meta-shape {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.04;
+            transform-style: preserve-3d;
+            z-index: 3;
+        }
+
+        .btn-lang {
+            background: rgba(4, 5, 8, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+        .btn-lang.active {
+            border-color: #f59e0b;
+            color: #f59e0b !important;
+            background: rgba(245, 158, 11, 0.1);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen pb-16 relative bg-[#020305]">
+
+    <canvas id="particleCanvas"></canvas>
+    <div class="grid-cyber" id="gridBg"></div>
+
+    <div class="meta-shape top-36 left-16 w-24 h-24 border-2 border-dashed border-amber-500 rounded-2xl" style="animation: orbit-pro-1 25s infinite linear;"></div>
+    <div class="meta-shape bottom-32 left-24 w-40 h-40 border border-zinc-700 rounded-full flex items-center justify-center" style="animation: orbit-pro-2 35s infinite linear;">
+        <div class="w-24 h-24 border border-dashed border-zinc-600 rounded-full flex items-center justify-center">
+            <div class="w-10 h-[1px] bg-amber-500/40"></div>
+        </div>
+    </div>
+    <div class="meta-shape top-48 right-24 w-20 h-20 border border-amber-500 transform" style="animation: orbit-pro-1 20s infinite linear;"></div>
+
+    <nav class="bg-[#0b0d13]/90 backdrop-blur-2xl border-b border-zinc-900/60 px-8 py-4 flex justify-between items-center relative z-10 shadow-2xl">
+        <div class="flex items-center space-x-6">
+            <div class="hidden sm:block">
+                <img src="img/ADL.png" alt="ADL Skilled Labor & Demolition" class="h-16 w-auto max-h-[72px] object-contain logo-nav-branding" />
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-6">
+            <div class="flex items-center bg-zinc-950/90 rounded-xl p-1 border border-zinc-900/80 mr-2">
+                <button onclick="cambiarIdioma('es')" id="btn-es" class="btn-lang active px-3 py-1.5 rounded-lg text-xs font-bold font-mono tracking-wider transition-all">ES</button>
+                <button onclick="cambiarIdioma('en')" id="btn-en" class="btn-lang px-3 py-1.5 rounded-lg text-xs font-bold font-mono tracking-wider transition-all">EN</button>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-xs font-mono tracking-wide text-zinc-300 bg-zinc-950/90 px-4 py-2 rounded-xl border border-zinc-900/80 shadow-inner" id="adminName">Cargando...</span>
+                <button onclick="cerrarSesionAdmin()" 
+                    class="text-[10px] bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 px-3.5 py-2 rounded-xl border border-rose-900/40 font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg">
+                    <span data-i18n="logout">Cerrar Sesión</span> <span>🚪</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-10 relative z-10">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight font-header" data-i18n="panelTitle">Panel de Control General</h1>
+                <p class="text-xs text-zinc-500 font-mono uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span> <span data-i18n="panelSubtitle">Consola de Operaciones y Mapeo Logístico</span>
+                </p>
+            </div>
+            <div class="flex flex-wrap gap-4 mt-5 md:mt-0">
+                <button onclick="abrirModalEmpleado()" class="bg-zinc-950/80 hover:bg-zinc-900 text-zinc-300 font-bold text-xs uppercase tracking-widest px-5 py-3.5 rounded-xl border border-zinc-900 transition-all shadow-2xl active:scale-95">
+                    <span data-i18n="btnRegisterEmp">👥 + Registrar Empleado</span>
+                </button>
+                <a href="admin_nuevo_proyecto.html" class="btn-glow-pro text-black font-black text-xs uppercase tracking-widest px-5 py-3.5 rounded-xl transition-all shadow-2xl flex items-center" data-i18n="btnAssignWork">
+                    + Asignar Nueva Obra
+                </a>
+            </div>
+        </div>
+
+        <div class="glass-card-pro rounded-2xl overflow-hidden shadow-2xl mb-10">
+            <div class="px-6 py-5 border-b border-zinc-800 flex justify-between items-center bg-black/[0.15]">
+                <h2 class="text-base font-bold uppercase tracking-wider font-header" data-i18n="monitoringTitle">Monitoreo de Jornadas de Hoy</h2>
+                <span class="text-[9px] bg-emerald-500/10 text-emerald-400 font-extrabold px-3 py-1 rounded-full border border-emerald-500/20 uppercase tracking-widest animate-pulse" id="lblServerStatus">Servidor Activo</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-black/[0.3] text-zinc-400 text-[10px] font-bold uppercase tracking-widest border-b border-zinc-800">
+                            <th class="px-6 py-4.5" data-i18n="thEmployee">Empleado</th>
+                            <th class="px-6 py-4.5" data-i18n="thProject">Obra / Ubicación</th>
+                            <th class="px-6 py-4.5" data-i18n="thHours">Horas Lab.</th>
+                            <th class="px-6 py-4.5" data-i18n="thGps">GPS Check-In</th>
+                            <th class="px-6 py-4.5 text-center" data-i18n="thReports">Reportes del Operario (Novedades/Fotos)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-800/50 text-xs font-medium text-zinc-300" id="tablaAsistencias">
+                        <tr>
+                            <td class="px-6 py-10 text-center text-zinc-500 font-mono tracking-wide uppercase" colspan="5" data-i18n="syncingMessage">Sincronizando registros en la red MyAdmin...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="glass-card-pro rounded-2xl p-6 h-fit shadow-2xl">
+                <h2 class="text-base font-bold border-b border-zinc-800 pb-3.5 mb-5 font-header uppercase tracking-wider">
+                    <span data-i18n="activeEmployees">👥 Empleados Activos</span>
+                </h2>
+                <div class="space-y-3.5" id="listaEmpleadosActivos">
+                    <p class="text-xs text-zinc-500 font-mono uppercase tracking-wider" data-i18n="loadingDb">Cargando base de datos...</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-8">
+                <div class="glass-card-pro border-amber-500/30 rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 shadow-2xl relative overflow-hidden hidden" id="bloqueCalculadora">
+                    <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
+                    <div class="max-w-md">
+                        <h3 class="text-xs font-black text-amber-500 uppercase tracking-widest font-mono" data-i18n="auditTitle">🧮 Auditoría de Horas y Nómina</h3>
+                        <p class="text-[11px] text-zinc-400 mt-1.5 leading-relaxed" data-i18n="auditDesc">Se han seleccionado registros del historial. Consolida los cálculos métricos para exportar el balance contable.</p>
+                        
+                        <div class="mt-4 flex flex-wrap items-center gap-4">
+                            <div class="flex items-center space-x-2">
+                                <label class="text-[11px] font-mono text-zinc-400 uppercase tracking-wider font-bold" data-i18n="lblRate">Tarifa Hora $:</label>
+                                <input type="number" id="inputTarifaHora" value="20.00" step="0.50" oninput="recalcularSeleccionElegida()" class="w-20 px-2.5 py-1 text-xs font-mono font-bold text-amber-400 rounded-lg bg-zinc-950 border border-zinc-800 focus:border-amber-500 outline-none text-center">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <label class="text-[11px] font-mono text-zinc-400 uppercase tracking-wider font-bold" data-i18n="lblTaxes">Taxes %:</label>
+                                <input type="number" id="inputTaxes" value="0.00" step="0.10" oninput="recalcularSeleccionElegida()" class="w-16 px-2.5 py-1 text-xs font-mono font-bold text-rose-400 rounded-lg bg-zinc-950 border border-zinc-800 focus:border-amber-500 outline-none text-center">
+                            </div>
+                        </div>
+
+                        <button onclick="generarReportePDF()" class="mt-4 bg-zinc-950 hover:bg-zinc-900 text-zinc-300 font-bold text-[10px] uppercase tracking-widest px-4 py-2.5 rounded-xl border border-zinc-900 transition-all flex items-center space-x-2 active:scale-95">
+                            <span data-i18n="btnExportPdf">📄 Exportar Reporte PDF</span>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-4 bg-zinc-950 px-5 py-4 rounded-xl border border-zinc-900 w-full sm:w-auto justify-between font-mono shadow-2xl">
+                        <div class="text-center min-w-[70px]">
+                            <span class="text-[9px] text-zinc-500 uppercase block font-sans font-bold tracking-wider" data-i18n="calcDaysLbl">Días Sel.</span>
+                            <span class="text-lg font-extrabold text-white mt-1 block" id="calcDias">0</span>
+                        </div>
+                        <div class="text-center border-x border-zinc-800 px-6 min-w-[100px]">
+                            <span class="text-[9px] text-zinc-500 uppercase block font-sans font-bold tracking-wider" data-i18n="calcHoursLbl">Horas Totales</span>
+                            <span class="text-lg font-extrabold text-emerald-400 mt-1 block" id="calcHoras">0.00</span>
+                        </div>
+                        <div class="text-center min-w-[90px]">
+                            <span class="text-[9px] text-zinc-500 uppercase block font-sans font-bold tracking-wider" data-i18n="calcTotalLbl">Total Pago</span>
+                            <span class="text-lg font-extrabold text-amber-500 mt-1 block" id="calcPago">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card-pro rounded-2xl overflow-hidden shadow-2xl hidden" id="bloqueHistorial">
+                    <div class="px-6 py-4 border-b border-zinc-800 bg-black/[0.1]">
+                        <h2 class="text-sm font-bold uppercase tracking-wider font-header" id="tituloHistorial">Historial de Jornadas</h2>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-black/[0.3] text-zinc-400 text-[10px] font-bold uppercase tracking-widest border-b border-zinc-800">
+                                    <th class="px-4 py-4 text-center w-12">✔</th>
+                                    <th class="px-4 py-4" data-i18n="thDate">Fecha</th>
+                                    <th class="px-6 py-4" data-i18n="thProjectLoc">Proyecto / Locación</th>
+                                    <th class="px-6 py-4 text-center" data-i18n="thRealSchedule">Horario Real</th>
+                                    <th class="px-6 py-4 text-right" data-i18n="thHoursCol">Horas</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-800/50 text-xs font-medium text-zinc-300" id="tablaHistorialCuerpo">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass-card-pro rounded-2xl p-16 text-center text-zinc-600 font-mono text-xs uppercase tracking-widest shadow-2xl" id="estadoVacioHistorial">
+                    <span class="text-4xl block mb-4 animate-bounce">👈</span>
+                    <span data-i18n="emptyStateDesc">Selecciona un operario activo para desplegar el historial biométrico y cálculos de nómina.</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalNovedadesFotos" class="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="glass-card-pro w-full max-w-2xl p-6 rounded-2xl border-amber-500/30 shadow-2xl relative mx-4">
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+            
+            <h2 class="text-lg font-bold font-header uppercase tracking-wider mb-1 flex items-center gap-2">
+                <span data-i18n="modalReportTitle">📋 Reporte de Novedades del Operario</span>
+            </h2>
+            <p class="text-[11px] text-zinc-500 mb-4 font-mono uppercase tracking-tight" id="modalNovedadesEmpleado">Empleado: --</p>
+            
+            <div class="space-y-4">
+                <div class="sub-panel-industrial p-4 rounded-xl border border-zinc-800/60">
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-1.5 font-mono" data-i18n="modalCommentsLbl">Comentarios del Operario</label>
+                    <p id="txtNovedadDetalle" class="text-xs text-zinc-300 font-sans leading-relaxed whitespace-pre-line">Cargando reporte...</p>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2 font-mono" data-i18n="modalPhotosLbl">Evidencia Fotográfica de la Actividad</label>
+                    <div id="contenedorFotosModal" class="grid grid-cols-2 gap-4 p-4 sub-panel-industrial rounded-xl border border-zinc-800/60 bg-black/40 min-h-[140px]">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center justify-end pt-4 border-t border-zinc-800 mt-6">
+                <button type="button" onclick="cerrarModalNovedades()" 
+                    class="px-5 py-2.5 text-xs font-bold uppercase tracking-widest bg-zinc-950 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 rounded-xl border border-zinc-900 transition-all active:scale-95" data-i18n="btnCloseConsole">
+                    Cerrar Consola
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalVisorGrande" class="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-[60] hidden" onclick="cerrarVisorGrande()">
+        <div class="relative max-w-4xl max-h-[85vh] p-4 flex flex-col justify-center items-center" onclick="event.stopPropagation()">
+            <button onclick="cerrarVisorGrande()" class="absolute -top-12 right-4 text-white font-mono text-sm bg-zinc-900 px-4 py-1.5 rounded-full border border-zinc-800 hover:bg-zinc-800 transition-all" data-i18n="btnCloseVisor">✕ Cerrar</button>
+            <img id="imgDestinoVisor" src="" alt="Evidencia Ampliada" class="max-w-full max-h-[80vh] rounded-2xl shadow-2xl object-contain border border-zinc-800/60">
+        </div>
+    </div>
+
+    <div id="modalEmpleado" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="glass-card-pro w-full max-w-md p-8 rounded-2xl border-amber-500/30 shadow-2xl relative">
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+            <h2 class="text-xl font-bold font-header uppercase tracking-wider mb-2" data-i18n="modalRegTitle">👥 Registrar Operario</h2>
+            <p class="text-xs text-zinc-500 mb-6 font-mono uppercase tracking-tight" data-i18n="modalRegSubtitle">Alta en Base de Datos & Generación de Token Único</p>
+            <form id="formNuevoEmpleado" onsubmit="guardarPreEmpleado(event)" class="space-y-5">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2 font-mono" data-i18n="lblFullName">Nombre Completo</label>
+                    <input type="text" id="addNombre" required autocomplete="off" class="input-cyber w-full px-4 py-3 rounded-xl text-white text-sm outline-none placeholder-zinc-600" placeholder="Ej. Carlos Mendoza">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2 font-mono" data-i18n="lblPhone">Teléfono de Contacto</label>
+                    <input type="tel" id="addTelefono" required autocomplete="off" class="input-cyber w-full px-4 py-3 rounded-xl text-white text-sm outline-none placeholder-zinc-600" placeholder="Ej. +573001234567">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2 font-mono" data-i18n="lblEmail">Correo Electrónico</label>
+                    <input type="email" id="addCorreo" required autocomplete="off" class="input-cyber w-full px-4 py-3 rounded-xl text-white text-sm outline-none placeholder-zinc-600" placeholder="carlos@company.com">
+                </div>
+                <div class="flex items-center justify-end space-x-4 pt-4 border-t border-black/10 mt-6">
+                    <button type="button" onclick="cerrarModalEmpleado()" class="px-5 py-3 text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 bg-black/5 rounded-xl border border-black/10 transition-all" data-i18n="btnCancel">Cancelar</button>
+                    <button type="submit" class="btn-glow-pro px-6 py-3 text-xs font-black uppercase tracking-widest text-black rounded-xl shadow-lg" data-i18n="btnGenerateCred">Generar Credenciales</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalEditarEmpleado" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="glass-card-pro w-full max-w-md p-8 rounded-2xl border-amber-500/30 shadow-2xl relative">
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-500 to-transparent"></div>
+            <h2 class="text-xl font-bold font-header uppercase tracking-wider mb-2" data-i18n="modalEditTitle">✏️ Modular Operario</h2>
+            <p class="text-xs text-zinc-500 mb-6 font-mono uppercase tracking-tight" data-i18n="modalEditSubtitle">Modificación de Parámetros Biométricos y Perfil</p>
+            <form id="formEditarEmpleado" onsubmit="guardarEdicionEmpleado(event)" class="space-y-5">
+                <input type="hidden" id="editId">
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2 font-mono" data-i18n="lblFullName">Nombre Completo</label>
+                    <input type="text" id="editNombre" required class="input-cyber w-full px-4 py-3 rounded-xl text-white text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2 font-mono" data-i18n="lblPhone">Teléfono Celular</label>
+                    <input type="text" id="editTelefono" class="input-cyber w-full px-4 py-3 rounded-xl text-white text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold uppercase tracking-widest text-zinc-600 mb-2 font-mono" data-i18n="lblEmail">Correo Electrónico</label>
+                    <input type="email" id="editCorreo" required class="input-cyber w-full px-4 py-3 rounded-xl text-white text-sm outline-none">
+                </div>
+                <div class="flex items-center justify-end space-x-4 pt-4 border-t border-black/10 mt-6">
+                    <button type="button" onclick="cerrarModalEditar()" class="px-5 py-3 text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 bg-black/5 rounded-xl border border-black/10 transition-all" data-i18n="btnCancel">Cancelar</button>
+                    <button type="submit" class="btn-glow-pro px-6 py-3 text-xs font-black uppercase tracking-widest text-black rounded-xl shadow-lg" data-i18n="btnUpdateMatrix">Actualizar Matriz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalEliminarEmpleado" class="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 hidden">
+        <div class="glass-card-pro w-full max-w-sm p-6 rounded-2xl border-rose-500/30 shadow-2xl relative">
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-rose-500 to-transparent"></div>
+            <h2 class="text-base font-bold text-rose-600 font-header uppercase tracking-wider mb-2" data-i18n="modalPurgeTitle">⚠️ Alerta de Purga</h2>
+            <p class="text-xs text-zinc-400 leading-relaxed mb-6" data-i18n="modalPurgeDesc">¿Estás seguro de que deseas dar de baja este operario? Esta acción revocará todos sus accesos remotos a la aplicación de marcación de obras.</p>
+            <div class="flex items-center justify-end space-x-3.5">
+                <button onclick="cerrarModalEliminar()" class="px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-200 transition-all" data-i18n="btnAbort">Abortar</button>
+                <button id="btnConfirmarEliminar" class="bg-rose-900/80 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl border border-rose-500/20 transition-all shadow-xl" data-i18n="btnConfirmPurge">Confirmar Baja</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        let empleadoSeleccionadoId = null;
+        let empleadoSeleccionadoNombre = "";
+        let idiomaActual = "es";
+
+        const traducciones = {
+            es: {
+                logout: "Cerrar Sesión",
+                panelTitle: "Panel de Control General",
+                panelSubtitle: "Consola de Operaciones y Mapeo Logístico",
+                btnRegisterEmp: "👥 + Registrar Empleado",
+                btnAssignWork: "+ Asignar Nueva Obra",
+                monitoringTitle: "Monitoreo de Jornadas de Hoy",
+                serverStatusActive: "Servidor Activo",
+                thEmployee: "Empleado",
+                thProject: "Obra / Ubicación",
+                thHours: "Horas Lab.",
+                thGps: "GPS Check-In",
+                thReports: "Reportes del Operario (Novedades/Fotos)",
+                syncingMessage: "Sincronizando registros en la red MyAdmin...",
+                activeEmployees: "👥 Empleados Activos",
+                loadingDb: "Cargando base de datos...",
+                auditTitle: "🧮 Auditoría de Horas y Nómina",
+                auditDesc: "Se han seleccionado registros del historial. Consolida los cálculos métricos para exportar el balance contable.",
+                lblRate: "Tarifa Hora $:",
+                lblTaxes: "Taxes %:",
+                btnExportPdf: "📄 Exportar Reporte PDF",
+                calcDaysLbl: "Días Sel.",
+                calcHoursLbl: "Horas Totales",
+                calcTotalLbl: "Total Pago",
+                thDate: "Fecha",
+                thProjectLoc: "Proyecto / Locación",
+                thRealSchedule: "Horario Real",
+                thHoursCol: "Horas",
+                emptyStateDesc: "Selecciona un operario activo para desplegar el historial biométrico y cálculos de nómina.",
+                modalReportTitle: "📋 Reporte de Novedades del Operario",
+                modalCommentsLbl: "Comentarios del Operario",
+                modalPhotosLbl: "Evidencia Fotográfica de la Actividad",
+                btnCloseConsole: "Cerrar Consola",
+                btnCloseVisor: "✕ Cerrar",
+                modalRegTitle: "👥 Registrar Operario",
+                modalRegSubtitle: "Alta en Base de Datos & Generación de Token Único",
+                lblFullName: "Nombre Completo",
+                lblPhone: "Teléfono de Contacto",
+                lblEmail: "Correo Electrónico",
+                btnCancel: "Cancelar",
+                btnGenerateCred: "Generar Credenciales",
+                modalEditTitle: "✏️ Modular Operario",
+                modalEditSubtitle: "Modificación de Parámetros Biométricos y Perfil",
+                btnUpdateMatrix: "Actualizar Matriz",
+                modalPurgeTitle: "⚠️ Alerta de Purga",
+                modalPurgeDesc: "¿Estás seguro de que deseas dar de baja este operario? Esta acción revocará todos sus accesos remotos a la aplicación de marcación de obras.",
+                btnAbort: "Abortar",
+                btnConfirmPurge: "Confirmar Baja",
+                noRecordsToday: "No hay registros de jornadas el día de hoy.",
+                errorComm: "Error de comunicación con terminal síncrona.",
+                viewEvidence: "Ver Evidencia",
+                noComments: "El operario no cargó comentarios escritos en este reporte diario.",
+                noPhotos: "📷 Ninguna fotografía adjunta en este reporte diario",
+                errorPhotos: "Error Datos",
+                noEmpFound: "No hay empleados de tipo trabajador.",
+                dbMappingError: "Error en el mapeo de la base de datos.",
+                searchingMysql: "Buscando registros en MySQL...",
+                onShift: "En turno...",
+                noAttendance: "No asistió",
+                enteredAt: "📥 Entró:",
+                estimatedLbl: "Estimado:",
+                noJornadas: "Este empleado no posee jornadas registradas.",
+                historialTitle: "Historial Completo:",
+                historyBaseTitle: "Historial de Jornadas",
+                selectJornadaAlert: "Por favor, selecciona al menos una jornada del historial."
+            },
+            en: {
+                logout: "Log Out",
+                panelTitle: "General Control Panel",
+                panelSubtitle: "Operations Console and Logistic Mapping",
+                btnRegisterEmp: "👥 + Register Employee",
+                btnAssignWork: "+ Assign New Project",
+                monitoringTitle: "Today's Shift Monitoring",
+                serverStatusActive: "Server Active",
+                thEmployee: "Employee",
+                thProject: "Project / Location",
+                thHours: "Worked Hours",
+                thGps: "GPS Check-In",
+                thReports: "Operator Reports (Logs/Photos)",
+                syncingMessage: "Synchronizing records in MyAdmin network...",
+                activeEmployees: "👥 Active Employees",
+                loadingDb: "Loading database...",
+                auditTitle: "🧮 Hours & Payroll Audit",
+                auditDesc: "History logs selected. Consolidate metric valuations to export the balance report.",
+                lblRate: "Hourly Rate $:",
+                lblTaxes: "Taxes %:",
+                btnExportPdf: "📄 Export PDF Report",
+                calcDaysLbl: "Sel. Days",
+                calcHoursLbl: "Total Hours",
+                calcTotalLbl: "Total Payout",
+                thDate: "Date",
+                thProjectLoc: "Project / Location",
+                thRealSchedule: "Real Schedule",
+                thHoursCol: "Hours",
+                emptyStateDesc: "Select an active operator to deploy biometric logs and payroll matrix calculations.",
+                modalReportTitle: "📋 Operator Logs Report",
+                modalCommentsLbl: "Operator Comments",
+                modalPhotosLbl: "Photographic Activity Evidence",
+                btnCloseConsole: "Close Console",
+                btnCloseVisor: "✕ Close",
+                modalRegTitle: "👥 Register Operator",
+                modalRegSubtitle: "Database Upload & Unique Token Generation",
+                lblFullName: "Full Name",
+                lblPhone: "Contact Phone",
+                lblEmail: "Email Address",
+                btnCancel: "Cancel",
+                btnGenerateCred: "Generate Credentials",
+                modalEditTitle: "✏️ Modular Operator",
+                modalEditSubtitle: "Biometric Parameters & Profile Modification",
+                btnUpdateMatrix: "Update Matrix",
+                modalPurgeTitle: "⚠️ Purge Warning",
+                modalPurgeDesc: "Are you sure you want to terminate this operator? This will revoke all remote access to the clock-in application.",
+                btnAbort: "Abort",
+                btnConfirmPurge: "Confirm Termination",
+                noRecordsToday: "No shift records found for today.",
+                errorComm: "Communication error with synchronous terminal.",
+                viewEvidence: "View Evidence",
+                noComments: "The operator did not upload written comments in this daily report.",
+                noPhotos: "📷 No photographs attached in this daily report",
+                errorPhotos: "Data Error",
+                noEmpFound: "No worker-type employees found.",
+                dbMappingError: "Error in database mapping.",
+                searchingMysql: "Searching records in MySQL...",
+                onShift: "On shift...",
+                noAttendance: "No attendance",
+                enteredAt: "📥 In:",
+                estimatedLbl: "Estimated:",
+                noJornadas: "This employee has no shifts recorded.",
+                historialTitle: "Full History:",
+                historyBaseTitle: "Shift History",
+                selectJornadaAlert: "Please, select at least one shift from history."
+            }
+        };
+
+        function cambiarIdioma(lang) {
+            idiomaActual = lang;
+            document.querySelectorAll(".btn-lang").forEach(btn => btn.classList.remove("active"));
+            document.getElementById(`btn-${lang}`).classList.add("active");
+
+            document.querySelectorAll("[data-i18n]").forEach(el => {
+                const clave = el.getAttribute("data-i18n");
+                if (traducciones[lang][clave]) {
+                    if (el.tagName === "INPUT" && el.hasAttribute("placeholder")) {
+                        el.setAttribute("placeholder", traducciones[lang][clave]);
+                    } else {
+                        const iconSpan = el.querySelector("span:last-child");
+                        if(clave === "logout" && iconSpan) {
+                            el.firstChild.textContent = traducciones[lang][clave] + " ";
+                        } else {
+                            el.textContent = traducciones[lang][clave];
+                        }
+                    }
+                }
+            });
+
+            const lblStatus = document.getElementById("lblServerStatus");
+            if(lblStatus) lblStatus.textContent = traducciones[lang].serverStatusActive;
+
+            actualizarTextosDinamicos();
+        }
+
+        function actualizarTextosDinamicos() {
+            const histTitle = document.getElementById("tituloHistorial");
+            if (histTitle && empleadoSeleccionadoNombre) {
+                histTitle.textContent = `${traducciones[idiomaActual].historialTitle} ${empleadoSeleccionadoNombre}`;
+            } else if(histTitle) {
+                histTitle.textContent = traducciones[idiomaActual].historyBaseTitle;
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("adminName").textContent = localStorage.getItem('admin_name') || "Administrador";
+            cambiarIdioma('es');
+            cargarMonitoreoEnVivo();
+            cargarListaEmpleados(); 
+        });
+
+        function cargarMonitoreoEnVivo() {
+            const tabla = document.getElementById("tablaAsistencias");
+            
+            fetch('http://localhost/MyAdmin/obtener_monitoreo.php')
+                .then(response => {
+                    if (!response.ok) throw new Error('Error HTTP: ' + response.status);
+                    return response.json();
+                })
+                .then(res => {
+                    if (res.status === 'success' && res.data && res.data.length > 0) {
+                        let filasHtml = "";
+                        res.data.forEach(reg => {
+                            const horas = reg.horas_trabajadas ? reg.horas_trabajadas : traducciones[idiomaActual].onShift;
+                            const novedadesTrabajador = reg.novedades_reportadas ? reg.novedades_reportadas : "Sin novedades.";
+                            const fotosUrlsTrabajador = reg.fotos_urls ? reg.fotos_urls : ""; 
+                            const coordenadas = reg.gps ? reg.gps : 'No disponible';
+                            const urlMapa = `https://www.google.com/maps?q=${coordenadas}`;
+
+                            const empleadoEscapado = reg.empleado.replace(/'/g, "\\'").replace(/"/g, '"');
+                            const noveltyEscaped = novedadesTrabajador.replace(/'/g, "\\'").replace(/"/g, '"').replace(/\n/g, " ");
+                            const fotosEscapadas = fotosUrlsTrabajador.replace(/[\r\n]+/g, "").replace(/'/g, "\\'").replace(/"/g, '"');
+
+                            filasHtml += `
+                                <tr class="hover:bg-white/[0.02] transition border-b border-zinc-800/40">
+                                    <td class="px-6 py-4 font-bold text-zinc-100">${reg.empleado}</td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-zinc-200 font-bold">${reg.obra}</div>
+                                        <div class="text-xs text-zinc-400 mt-0.5">${reg.direccion}</div>
+                                        <div class="text-[11px] text-amber-500 font-mono mt-1 font-semibold">Aliado: ${reg.aliado || 'Ninguno'}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-mono font-bold border border-emerald-500/20">${horas}</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-mono text-xs text-blue-400">
+                                        <a href="${urlMapa}" target="_blank" class="hover:underline flex items-center gap-1 font-medium text-sky-400">
+                                            📍 ${coordenadas}
+                                        </a>
+                                    </td>
+                                    <td class="px-6 py-4 max-w-xs">
+                                        <div onclick="verNovedadesFotos('${empleadoEscapado}', '${noveltyEscaped}', '${fotosEscapadas}')" 
+                                             class="cursor-pointer text-xs text-amber-400 bg-amber-500/10 p-2 rounded-xl border border-amber-500/20 font-mono font-medium hover:border-amber-500 hover:bg-amber-500/20 transition-all flex items-center justify-between gap-2">
+                                            <span class="truncate flex-1 font-semibold text-zinc-300">${novedadesTrabajador}</span>
+                                            <span class="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-sans font-bold uppercase tracking-wider shrink-0">${traducciones[idiomaActual].viewEvidence}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        tabla.innerHTML = filasHtml;
+                    } else {
+                        tabla.innerHTML = `<tr><td class="px-6 py-10 text-center text-zinc-500 font-mono uppercase tracking-wider" colspan="5">${traducciones[idiomaActual].noRecordsToday}</td></tr>`;
+                    }
+                })
+                .catch(err => {
+                    console.error("Error en monitoreo:", err);
+                    tabla.innerHTML = `<tr><td class="px-6 py-10 text-center text-rose-400 font-mono uppercase font-bold" colspan="5">${traducciones[idiomaActual].errorComm}</td></tr>`;
+                });
+        }
+
+        function verNovedadesFotos(empleado, novedad, fotoUrl) {
+            document.getElementById("modalNovedadesEmpleado").textContent = `Operario: ${empleado}`;
+            document.getElementById("txtNovedadDetalle").textContent = novedad || traducciones[idiomaActual].noComments;
+
+            const contenedorFotos = document.getElementById("contenedorFotosModal");
+            contenedorFotos.innerHTML = "";
+
+            if (fotoUrl && fotoUrl.trim() !== "" && fotoUrl !== "null") {
+                const arrayFotos = fotoUrl.split(",");
+                let fotosValidas = 0;
+
+                arrayFotos.forEach((origenDato, index) => {
+                    let srcFinal = origenDato.trim();
+                    if (srcFinal.startsWith("/9j/") || srcFinal.startsWith("iVBORw0KGg")) {
+                        srcFinal = "data:image/jpeg;base64," + srcFinal;
+                    }
+                    if (srcFinal !== "" && srcFinal.startsWith("data:image")) {
+                        fotosValidas++;
+                        
+                        const divFoto = document.createElement("div");
+                        divFoto.className = "relative w-full rounded-xl overflow-hidden aspect-video border border-zinc-800 bg-zinc-950 cursor-pointer hover:scale-[1.02] hover:border-amber-500/50 transition-all shadow-lg group flex items-center justify-center";
+                        divFoto.onclick = function() { expandirVisorGrande(srcFinal); };
+
+                        const img = document.createElement("img");
+                        img.src = srcFinal;
+                        img.alt = `Evidencia ${index + 1}`;
+                        img.className = "w-full h-full object-cover pointer-events-none";
+                        img.onerror = function() { this.src = `https://placehold.co/150x100?text=${traducciones[idiomaActual].errorPhotos}`; };
+
+                        const overlay = document.createElement("div");
+                        overlay.className = "absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity pointer-events-none";
+                        overlay.innerHTML = `<span class="text-[10px] text-amber-400 font-bold uppercase tracking-wider bg-black/70 px-2 py-1 rounded-md">Ampliar 🔍</span>`;
+
+                        divFoto.appendChild(img);
+                        divFoto.appendChild(overlay);
+                        contenedorFotos.appendChild(divFoto);
+                    }
+                });
+
+                if (fotosValidas === 0) {
+                    contenedorFotos.innerHTML = `<div class="text-zinc-600 text-[11px] font-mono uppercase p-4 text-center"><span>${traducciones[idiomaActual].noPhotos}</span></div>`;
+                }
+            } else {
+                contenedorFotos.innerHTML = `<div class="text-zinc-600 text-[11px] font-mono uppercase p-4 text-center"><span>${traducciones[idiomaActual].noPhotos}</span></div>`;
+            }
+            document.getElementById("modalNovedadesFotos").classList.remove("hidden");
+        }
+
+        function cerrarModalNovedades() {
+            document.getElementById("modalNovedadesFotos").classList.add("hidden");
+        }
+
+        function expandirVisorGrande(url) {
+            const imgTarget = document.getElementById("imgDestinoVisor");
+            imgTarget.src = url;
+            document.getElementById("modalVisorGrande").classList.remove("hidden");
+        }
+
+        function cerrarVisorGrande() {
+            document.getElementById("modalVisorGrande").classList.add("hidden");
+            document.getElementById("imgDestinoVisor").src = "";
+        }
+
+        function cargarListaEmpleados() {
+            const contenedor = document.getElementById("listaEmpleadosActivos");
+            
+            fetch('http://localhost/MyAdmin/obtener_empleados.php')
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success' && res.data.length > 0) {
+                        contenedor.innerHTML = "";
+                        res.data.forEach(emp => {
+                            contenedor.innerHTML += `
+                                <div id="btn-emp-${emp.id}" class="w-full bg-black/[0.15] border border-zinc-800/60 p-3.5 rounded-xl flex justify-between items-center transition group hover:border-amber-500/40 hover:bg-black/[0.3]">
+                                    <div onclick="seleccionarEmpleado(${emp.id}, '${emp.nombre}')" class="cursor-pointer flex-1">
+                                        <div class="text-sm font-bold text-zinc-200 group-hover:text-amber-500 transition-colors">${emp.nombre}</div>
+                                        <div class="text-[11px] text-zinc-500 font-mono font-medium mt-0.5">${emp.correo}</div>
+                                    </div>
+                                    <div class="flex items-center space-x-1 ml-2">
+                                        <button onclick="abrirModalEditar(${emp.id}, '${emp.nombre}', '${emp.correo}', '${emp.telefono || ''}')" title="Editar" class="text-zinc-500 hover:text-amber-500 transition-colors p-2 text-xs">✏️</button>
+                                        <button onclick="abrirModalEliminar(${emp.id})" title="Eliminar" class="text-zinc-500 hover:text-rose-400 transition-colors p-2 text-xs">🗑️</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        contenedor.innerHTML = `<p class="text-xs text-zinc-500 font-mono uppercase tracking-wider">${traducciones[idiomaActual].noEmpFound}</p>`;
+                    }
+                })
+                .catch(err => {
+                    console.error("Error al traer plantilla:", err);
+                    contenedor.innerHTML = `<p class="text-xs text-rose-400 font-mono uppercase font-bold">${traducciones[idiomaActual].dbMappingError}</p>`;
+                });
+        }
+
+        function seleccionarEmpleado(id, nombre) {
+            empleadoSeleccionadoId = id;
+            empleadoSeleccionadoNombre = nombre;
+
+            document.querySelectorAll('[id^="btn-emp-"]').forEach(btn => {
+                btn.classList.remove('border-amber-500', 'bg-black/[0.3]', 'shadow-inner');
+                btn.classList.add('border-zinc-800/60', 'bg-black/[0.15]');
+            });
+            const btnActivo = document.getElementById(`btn-emp-${id}`);
+            if(btnActivo) {
+                btnActivo.classList.remove('border-zinc-800/60', 'bg-black/[0.15]');
+                btnActivo.classList.add('border-amber-500', 'bg-black/[0.3]', 'shadow-inner');
+            }
+
+            document.getElementById("estadoVacioHistorial").classList.add("hidden");
+            document.getElementById("bloqueCalculadora").classList.remove("hidden");
+            document.getElementById("bloqueHistorial").classList.remove("hidden");
+            actualizarTextosDinamicos();
+
+            document.getElementById("calcDias").textContent = "0";
+            document.getElementById("calcHoras").textContent = "0.00";
+            document.getElementById("calcPago").textContent = "$0.00";
+
+            cargarHistorialEmpleado(id);
+        }
+
+        function cargarHistorialEmpleado(idUsuario) {
+            const cuerpo = document.getElementById("tablaHistorialCuerpo");
+            cuerpo.innerHTML = `<tr><td class="px-4 py-8 text-center text-zinc-500 font-mono uppercase tracking-widest" colspan="5">${traducciones[idiomaActual].searchingMysql}</td></tr>`;
+
+            fetch(`http://localhost/MyAdmin/obtener_historial.php?id_usuario=${idUsuario}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success' && res.data.length > 0) {
+                        let filasHtml = "";
+                        res.data.forEach(jornada => {
+                            let horasTrabajadas = 0.0;
+                            let textoHorarioReal = traducciones[idiomaActual].noAttendance;
+
+                            if (jornada.hora_entrada) {
+                                const dateEntrada = new Date(jornada.hora_entrada.replace(/-/g, "/"));
+                                const pad = (num) => String(num).padStart(2, '0');
+                                const stringEntrada = `${pad(dateEntrada.getHours())}:${pad(dateEntrada.getMinutes())}:${pad(dateEntrada.getSeconds())}`;
+                                
+                                if (jornada.hora_salida) {
+                                    const dateSalida = new Date(jornada.hora_salida.replace(/-/g, "/"));
+                                    const stringSalida = `${pad(dateSalida.getHours())}:${pad(dateSalida.getMinutes())}:${pad(dateSalida.getSeconds())}`;
+                                    textoHorarioReal = `⏱️ ${stringEntrada} a ${stringSalida}`;
+                                    horasTrabajadas = parseFloat(jornada.horas_reales) || 0.0;
+                                } else {
+                                    textoHorarioReal = `${traducciones[idiomaActual].enteredAt} ${stringEntrada} (${traducciones[idiomaActual].onShift})`;
+                                    horasTrabajadas = 0.0;
+                                }
+                            }
+
+                            let badgeColor = "bg-zinc-800 text-zinc-500 border-zinc-700";
+                            if (horasTrabajadas > 0) badgeColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                            if (jornada.hora_entrada && !jornada.hora_salida) badgeColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+
+                            filasHtml += `
+                                <tr onclick="conmutarSeleccionFila(this, ${horasTrabajadas})" class="cursor-pointer hover:bg-white/[0.01] transition select-none border-b border-zinc-800/30">
+                                    <td class="px-4 py-4 text-center">
+                                        <input type="checkbox" ${horasTrabajadas === 0 ? 'disabled' : ''} class="pointer-events-none accent-amber-500 w-4 h-4 rounded border-zinc-700 bg-transparent">
+                                    </td>
+                                    <td class="px-4 py-4 font-mono text-xs text-amber-500 font-bold target-fecha">${jornada.fecha_laboral}</td>
+                                    <td class="px-6 py-4 target-proyecto">
+                                        <div class="text-zinc-200 font-bold text-xs font-title">${jornada.nombre_proyecto}</div>
+                                        <div class="text-[11px] text-zinc-400 truncate max-w-xs font-dir font-medium mt-0.5">${jornada.direccion}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center font-mono text-xs target-horario">
+                                        <div class="text-zinc-100 font-bold text-[13px]">${textoHorarioReal}</div>
+                                        <div class="text-[10px] text-zinc-500 font-medium mt-0.5">${traducciones[idiomaActual].estimatedLbl} ${jornada.horario_estimado}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono font-bold text-zinc-200" data-horas-fila="${horasTrabajadas}">
+                                        <span class="${badgeColor} px-2.5 py-1 rounded-xl text-xs border font-extrabold">
+                                            ${horasTrabajadas.toFixed(2)} hrs
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        cuerpo.innerHTML = filasHtml;
+                    } else {
+                        cuerpo.innerHTML = `<tr><td class="px-4 py-10 text-center text-zinc-500 font-mono uppercase" colspan="5">${traducciones[idiomaActual].noJornadas}</td></tr>`;
+                    }
+                })
+                .catch(err => {
+                    console.error("Error en historial fetch:", err);
+                    cuerpo.innerHTML = `<tr><td class="px-4 py-4 text-center text-rose-400 font-mono uppercase font-bold" colspan="5">Error de conexión con el backend de historial.</td></tr>`;
+                });
+        }
+
+        function conmutarSeleccionFila(fila, horas) {
+            if (horas === 0) return;
+            const checkbox = fila.querySelector('input[type="checkbox"]');
+            
+            if (fila.classList.contains('fila-seleccionada')) {
+                fila.classList.remove('fila-seleccionada');
+                checkbox.checked = false;
+            } else {
+                fila.classList.add('fila-seleccionada');
+                checkbox.checked = true;
+            }
+            recalcularSeleccionElegida();
+        }
+
+        function recalcularSeleccionElegida() {
+            const elegidas = document.querySelectorAll('#tablaHistorialCuerpo tr.fila-seleccionada');
+            let totalDias = elegidas.length;
+            let totalHoras = 0.0;
+
+            elegidas.forEach(fila => {
+                const elementoHoras = fila.querySelector('[data-horas-fila]');
+                if (elementoHoras) {
+                    totalHoras += parseFloat(elementoHoras.getAttribute('data-horas-fila'));
+                }
+            });
+
+            const tarifaDinamica = parseFloat(document.getElementById("inputTarifaHora").value) || 0.00;
+            const taxesDinamicos = parseFloat(document.getElementById("inputTaxes").value) || 0.00;
+            
+            let bruto = totalHoras * tarifaDinamica;
+            let montoFinalPago = bruto - (bruto * (taxesDinamicos / 100));
+
+            document.getElementById("calcDias").textContent = totalDias;
+            document.getElementById("calcHoras").textContent = totalHoras.toFixed(2);
+            document.getElementById("calcPago").textContent = `$${montoFinalPago.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        }
+
+        function abrirModalEditar(id, nombre, correo, telefono) {
+            document.getElementById("editId").value = id;
+            document.getElementById("editNombre").value = nombre;
+            document.getElementById("editCorreo").value = correo;
+            document.getElementById("editTelefono").value = (telefono && telefono !== 'null') ? telefono : '';
+            document.getElementById("modalEditarEmpleado").classList.remove("hidden");
+        }
+
+        function cerrarModalEditar() {
+            document.getElementById("modalEditarEmpleado").classList.add("hidden");
+            document.getElementById("formEditarEmpleado").reset();
+        }
+
+        function guardarEdicionEmpleado(e) {
+            e.preventDefault();
+            const datos = {
+                id: document.getElementById("editId").value,
+                nombre: document.getElementById("editNombre").value,
+                telefono: document.getElementById("editTelefono").value,
+                correo: document.getElementById("editCorreo").value
+            };
+
+            fetch('http://localhost/MyAdmin/editar_empleado.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.status === 'success') {
+                    cerrarModalEditar();
+                    cargarListaEmpleados();
+                } else {
+                    alert("Error al actualizar: " + res.message);
+                }
+            })
+            .catch(err => {
+                console.error("Error en Fetch Edición:", err);
+            });
+        }
+
+        function abrirModalEliminar(id) {
+            document.getElementById("modalEliminarEmpleado").classList.remove("hidden");
+            document.getElementById("btnConfirmarEliminar").onclick = function() {
+                ejecutarEliminacionEmpleado(id);
+            };
+        }
+
+        function cerrarModalEliminar() {
+            document.getElementById("modalEliminarEmpleado").classList.add("hidden");
+        }
+
+        function ejecutarEliminacionEmpleado(id) {
+            fetch('http://localhost/MyAdmin/eliminar_empleado.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.status === 'success') {
+                    cerrarModalEliminar();
+                    if (empleadoSeleccionadoId === id) {
+                        empleadoSeleccionadoId = null;
+                        empleadoSeleccionadoNombre = "";
+                        document.getElementById("estadoVacioHistorial").classList.remove("hidden");
+                        document.getElementById("bloqueCalculadora").classList.add("hidden");
+                        document.getElementById("bloqueHistorial").classList.add("hidden");
+                    }
+                    cargarListaEmpleados();
+                } else {
+                    alert("Error al procesar baja: " + res.message);
+                }
+            })
+            .catch(err => {
+                console.error("Error en Fetch Eliminación:", err);
+            });
+        }
+
+        function generarReportePDF() {
+            const filasSeleccionadas = document.querySelectorAll('#tablaHistorialCuerpo tr.fila-seleccionada');
+            if (filasSeleccionadas.length === 0) {
+                alert(traducciones[idiomaActual].selectJornadaAlert);
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4'); 
+            const tarifaActual = parseFloat(document.getElementById("inputTarifaHora").value) || 0.00;
+            const taxesActual = parseFloat(document.getElementById("inputTaxes").value) || 0.00;
+
+            const imagenLogo = new Image();
+            imagenLogo.src = 'img/ADL.png';
+
+            imagenLogo.onload = function() {
+                ejecutarEstructuraPDF(doc, filasSeleccionadas, tarifaActual, taxesActual, imagenLogo);
+            };
+            imagenLogo.onerror = function() {
+                console.warn("Logo corporativo no hallado en img/ADL.png.");
+                ejecutarEstructuraPDF(doc, filasSeleccionadas, tarifaActual, taxesActual, null);
+            };
+        }
+
+        function ejecutarEstructuraPDF(doc, filasSeleccionadas, tarifaActual, taxesActual, imgObjeto) {
+            // Marca de agua centralizada y sutil en el centro blanco de la hoja
+            if (imgObjeto) {
+                doc.saveGraphicsState();
+                doc.setGState(new doc.GState({ opacity: 0.04 }));
+                // Centrado en A4 (Ancho 210, Alto 297). Imagen de 110x110mm aprox.
+                doc.addImage(imgObjeto, 'PNG', 50, 95, 110, 110);
+                doc.restoreGraphicsState();
+            }
+
+            // Encabezado Premium Compacto
+            doc.setFillColor(11, 13, 19); 
+            doc.rect(0, 0, 210, 32, 'F');
+            
+            if (imgObjeto) {
+                doc.addImage(imgObjeto, 'PNG', 12, 5, 42, 22);
+            } else {
+                doc.setTextColor(245, 158, 11);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(20);
+                doc.text("ADL SKILLED LABOR", 14, 18);
+            }
+
+            // Metadatos de la cabecera (Bilingüe automatizado)
+            doc.setTextColor(255, 255, 255);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(13);
+            const titlePdf = idiomaActual === "es" ? "AUDITORÍA DE NÓMINA" : "PAYROLL AUDIT REPORT";
+            doc.text(titlePdf, 120, 15);
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(161, 161, 170);
+            const dateStr = idiomaActual === "es" ? "Emisión:" : "Issued:";
+            const statusStr = idiomaActual === "es" ? "Estatus: Validado / Única Hoja" : "Status: Validated / Single Page";
+            doc.text(`${dateStr} ${new Date().toLocaleDateString()}`, 120, 21);
+            doc.text(statusStr, 120, 26);
+
+            // Bloque de Datos Generales
+            doc.setFillColor(245, 245, 247);
+            doc.rect(14, 38, 182, 18, 'F');
+
+            doc.setFontSize(9);
+            doc.setTextColor(22, 26, 36);
+            doc.setFont("helvetica", "bold");
+            doc.text(idiomaActual === "es" ? "OPERARIO:" : "OPERATOR:", 18, 44);
+            doc.setFont("helvetica", "normal");
+            doc.text(empleadoSeleccionadoNombre.toUpperCase(), 60, 44);
+
+            doc.setFont("helvetica", "bold");
+            doc.text(idiomaActual === "es" ? "TARIFA / HORA:" : "HOURLY RATE:", 18, 50);
+            doc.setFont("helvetica", "normal");
+            doc.text(`$${tarifaActual.toFixed(2)} USD`, 60, 50);
+
+            // Procesamiento de datos de tabla
+            const matrizDatos = [];
+            let sumatoriaHoras = 0;
+
+            filasSeleccionadas.forEach(fila => {
+                const fecha = fila.querySelector('.target-fecha').textContent;
+                const proyecto = fila.querySelector('.font-title').textContent;
+                const horasFilaVal = parseFloat(fila.querySelector('[data-horas-fila]').getAttribute('data-horas-fila'));
+                
+                sumatoriaHoras += horasFilaVal;
+                matrizDatos.push([fecha, proyecto, `${horasFilaVal.toFixed(2)} hrs`]);
+            });
+
+            // Forzar tabla condensada para preservar diseño en una sola hoja
+            const th1 = idiomaActual === "es" ? 'Fecha Laboral' : 'Work Date';
+            const th2 = idiomaActual === "es" ? 'Obra / Proyecto Asignado' : 'Assigned Project / Location';
+            const th3 = idiomaActual === "es" ? 'Horas' : 'Hours';
+
+            doc.autoTable({
+                startY: 60,
+                margin: { left: 14, right: 14 },
+                head: [[th1, th2, th3]],
+                body: matrizDatos,
+                headStyles: { fillColor: [245, 158, 11], textColor: [2, 3, 5], fontStyle: 'bold', fontSize: 9 }, 
+                styles: { font: 'helvetica', fontSize: 8, cellPadding: 2.5 },
+                columnStyles: { 0: { cellWidth: 35 }, 2: { halign: 'right', cellWidth: 30 } },
+                theme: 'striped',
+                styles: { overflow: 'ellipsis' }
+            });
+
+            // Bloque de Liquidación
+            const puntoYFinal = doc.lastAutoTable.finalY + 6;
+            let bruto = sumatoriaHoras * tarifaActual;
+            let retencion = bruto * (taxesActual / 100);
+            let liquido = bruto - retencion;
+            
+            doc.setFillColor(245, 245, 247);
+            doc.rect(112, puntoYFinal, 84, 28, 'F');
+
+            doc.setFontSize(8.5);
+            doc.setTextColor(22, 26, 36);
+            
+            doc.setFont("helvetica", "bold");
+            doc.text(idiomaActual === "es" ? "Horas Totales:" : "Total Hours:", 116, puntoYFinal + 6);
+            doc.setFont("helvetica", "normal");
+            doc.text(`${sumatoriaHoras.toFixed(2)} hrs`, 168, puntoYFinal + 6);
+
+            doc.setFont("helvetica", "bold");
+            doc.text(idiomaActual === "es" ? "Monto Bruto:" : "Gross Amount:", 116, puntoYFinal + 12);
+            doc.setFont("helvetica", "normal");
+            doc.text(`$${bruto.toFixed(2)}`, 168, puntoYFinal + 12);
+
+            doc.setFont("helvetica", "bold");
+            doc.text(`Taxes (${taxesActual.toFixed(1)}%):`, 116, puntoYFinal + 18);
+            doc.setFont("helvetica", "normal");
+            doc.text(`-$${retencion.toFixed(2)}`, 168, puntoYFinal + 18);
+
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(206, 131, 27); 
+            doc.text(idiomaActual === "es" ? "LÍQUIDO A PAGAR:" : "NET PAYOUT:", 116, puntoYFinal + 24);
+            doc.text(`$${liquido.toFixed(2)} USD`, 168, puntoYFinal + 24);
+
+            // Pie de página institucional inalterable de una hoja
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.setFont("helvetica", "italic");
+            const footerTxt = idiomaActual === "es" 
+                ? "Este documento es un extracto simplificado de balance de horas devengadas estructurado para una sola página." 
+                : "This document is a simplified statement of hours earned structured for a single page execution.";
+            doc.text(footerTxt, 14, 285);
+
+            doc.save(`Reporte_Nomina_${empleadoSeleccionadoNombre.replace(/ /g, "_")}.pdf`);
+        }
+
+        function abrirModalEmpleado() {
+            document.getElementById("modalEmpleado").classList.remove("hidden");
+        }
+
+        function cerrarModalEmpleado() {
+            document.getElementById("modalEmpleado").classList.add("hidden");
+            document.getElementById("formNuevoEmpleado").reset();
+        }
+
+        function guardarPreEmpleado(e) {
+            e.preventDefault();
+            const datos = {
+                nombre: document.getElementById("addNombre").value,
+                telefono: document.getElementById("addTelefono").value,
+                correo: document.getElementById("addCorreo").value
+            };
+
+            fetch('http://localhost/MyAdmin/crear_pre_empleado.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if(res.status === 'success') {
+                    cerrarModalEmpleado();
+                    window.prompt(
+                        "¡Empleado creado con éxito!\n\nCopia este enlace de registro único y envíaselo a tu trabajador por WhatsApp o Correo:", 
+                        res.url_enviada_simulada
+                    );
+                    cargarListaEmpleados(); 
+                } else {
+                    alert("Error del servidor: " + res.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Error crítico de comunicación al procesar el alta.");
+            });
+        }
+
+        function cerrarSesionAdmin() {
+            localStorage.removeItem('admin_session');
+            localStorage.removeItem('admin_name');
+            window.location.href = "login.html";
+        }
+    </script>
+
+    <script>
+        const grid = document.getElementById('gridBg');
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let mouse = { x: null, y: null, radius: 170 };
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const particleArray = [];
+        const numberOfParticles = 140; 
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2.8 + 1.2; 
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 30) + 15;
+                this.speedX = (Math.random() - 0.5) * 0.45;
+                this.speedY = (Math.random() - 0.5) * 0.45;
+                this.opacity = Math.random() * 0.55 + 0.35; 
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.hypot(dx, dy);
+                
+                if (distance < mouse.radius) {
+                    let forceDirectionX = dx / distance;
+                    let forceDirectionY = dy / distance;
+                    let force = (mouse.radius - distance) / mouse.radius;
+                    let directionX = forceDirectionX * force * this.density * 0.4;
+                    let directionY = forceDirectionY * force * this.density * 0.4;
+                    
+                    this.x -= directionX;
+                    this.y -= directionY;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 145, 0, ${this.opacity})`; 
+                ctx.shadowBlur = 9;
+                ctx.shadowColor = '#ff9100'; 
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < numberOfParticles; i++) {
+            particleArray.push(new Particle());
+        }
+
+        function drawLines() {
+            let maxDistance = 115;
+            for (let a = 0; a < particleArray.length; a++) {
+                for (let b = a; b < particleArray.length; b++) {
+                    let dx = particleArray[a].x - particleArray[b].x;
+                    let dy = particleArray[a].y - particleArray[b].y;
+                    let distance = Math.hypot(dx, dy);
+
+                    if (distance < maxDistance) {
+                        let opacity = (1 - (distance / maxDistance)) * 0.15;
+                        ctx.strokeStyle = `rgba(255, 145, 0, ${opacity})`;
+                        ctx.lineWidth = 0.8;
+                        ctx.beginPath();
+                        ctx.moveTo(particleArray[a].x, particleArray[a].y);
+                        ctx.lineTo(particleArray[b].x, particleArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            
+            grid.style.setProperty('--mouse-x', `${e.clientX}px`);
+            grid.style.setProperty('--mouse-y', `${e.clientY}px`);
+
+            const cards = document.querySelectorAll('.glass-card-pro');
+            const xAxis = (window.innerWidth / 2 - e.clientX) / 75;
+            const yAxis = (window.innerHeight / 2 - e.clientY) / 75;
+            
+            cards.forEach(c => {
+                c.style.transform = `rotateY(${-xAxis}deg) rotateX(${yAxis}deg)`;
+            });
+        });
+
+        document.addEventListener('mouseleave', () => {
+            mouse.x = null;
+            mouse.y = null;
+            const cards = document.querySelectorAll('.glass-card-pro');
+            cards.forEach(c => {
+                c.style.transform = `rotateY(0deg) rotateX(0deg)`;
+            });
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particleArray.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            drawLines();
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>

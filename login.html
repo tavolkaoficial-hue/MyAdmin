@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyAdmin - ADL Core Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700;800&family=Space+Grotesk:wght=500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020305; 
+            color: #ffffff;
+            overflow: hidden;
+            perspective: 2000px;
+        }
+
+        .font-header { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Canvas ambiental de fondo */
+        #particleCanvas {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Rejilla estructural interactiva */
+        .grid-cyber {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(245, 158, 11, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(245, 158, 11, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            background-position: center;
+            mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), black 10%, transparent 50%);
+            z-index: 2;
+        }
+
+        /* Tarjeta de Login Premium (Gris plata translúcido) */
+        .glass-card-pro {
+            background: linear-gradient(135deg, rgba(220, 225, 235, 0.85) 0%, rgba(195, 200, 210, 0.95) 100%);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.9), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+            transform-style: preserve-3d;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-card-pro:hover {
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 60px 120px rgba(245, 158, 11, 0.15), inset 0 1px 3px rgba(255, 255, 255, 1);
+        }
+
+        .input-cyber {
+            background: rgba(10, 12, 16, 0.95);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.4);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .input-cyber:focus {
+            border-color: #f59e0b;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 30px rgba(245, 158, 11, 0.25);
+        }
+
+        .btn-glow-pro {
+            background: linear-gradient(135deg, #252b36 0%, #0b0f17 100%);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3), 0 6px 0 #000000;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-glow-pro:hover {
+            transform: translateZ(10px) translateY(-2px);
+            box-shadow: 0 0 35px rgba(245, 158, 11, 0.3), 0 8px 0 #000000;
+        }
+
+        /* Botón regresar minimalista */
+        .btn-back-cyber {
+            background: rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(15, 23, 42, 0.15);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-back-cyber:hover {
+            background: rgba(15, 23, 42, 0.15);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #b45309;
+        }
+
+        /* Efectos de iluminación sutiles para el Login */
+        .logo-branding {
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+            transition: filter 0.3s ease;
+        }
+        .glass-card-pro:hover .logo-branding {
+            filter: drop-shadow(0 6px 20px rgba(245, 158, 11, 0.25));
+        }
+
+        /* ========================================================
+           CINEMÁTICA INTERACTIVA 3D DEL LOGO REAL EN EL PRELOADER
+           ======================================================== */
+        @keyframes adlCamera3D {
+            0% {
+                transform: rotateX(45deg) rotateY(-25deg) rotateZ(-10deg) translateZ(-300px) scale(0.8);
+                filter: blur(8px);
+                opacity: 0;
+            }
+            15% { filter: blur(2px); opacity: 0.7; }
+            45% { filter: blur(0px); opacity: 1; }
+            65% {
+                transform: rotateX(12deg) rotateY(-4deg) rotateZ(-2deg) translateZ(40px) scale(1.04);
+            }
+            85%, 100% {
+                transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) translateZ(0px) scale(1);
+            }
+        }
+
+        /* Pulso neón envolvente para rescatar tipografías oscuras en fondo negro */
+        @keyframes logoNeonPulse {
+            0%, 100% {
+                filter: 
+                    drop-shadow(0 0 15px rgba(255, 255, 255, 0.6))
+                    drop-shadow(0 0 35px rgba(245, 158, 11, 0.25));
+            }
+            50% {
+                filter: 
+                    drop-shadow(0 0 25px rgba(255, 255, 255, 0.85))
+                    drop-shadow(0 0 55px rgba(245, 158, 11, 0.45))
+                    brightness(1.05);
+            }
+        }
+
+        @keyframes blueprintRotate {
+            0% { transform: rotate(0deg) scale(0.7); opacity: 0; }
+            20% { opacity: 0.25; }
+            75% { transform: rotate(180deg) scale(1.05); opacity: 0.25; }
+            90%, 100% { transform: rotate(360deg) scale(1); opacity: 0.03; filter: blur(2px); }
+        }
+
+        /* Contenedor del logo real con hardware acceleration */
+        .adl-preloader-logo {
+            transform-style: preserve-3d;
+            perspective: 1200px;
+            will-change: transform, filter, opacity;
+        }
+
+        .start-3d-stage { 
+            animation: adlCamera3D 7.6s cubic-bezier(0.1, 0.85, 0.2, 1) forwards; 
+        }
+        
+        .start-3d-stage .logo-img-target {
+            animation: logoNeonPulse 4s ease-in-out infinite alternate;
+            animation-delay: 1.5s;
+        }
+
+        .blueprint-ring { transform-origin: center; animation: blueprintRotate 7.6s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
+
+        /* BOTÓN SELECTOR DE IDIOMA PREMIUM */
+        .lang-selector {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .lang-selector:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col justify-between items-center p-4 relative bg-[#020305]">
+
+    <canvas id="particleCanvas"></canvas>
+    <div class="grid-cyber" id="gridBg"></div>
+
+    <header class="w-full max-w-5xl mx-auto flex justify-end relative z-30 pt-2">
+        <div class="lang-selector flex items-center rounded-full p-1.5 space-x-1 text-xs font-mono tracking-wider">
+            <button onclick="changeLanguage('es')" id="btn-es" class="px-3 py-1.5 rounded-full font-bold transition-all duration-300">ES</button>
+            <button onclick="changeLanguage('en')" id="btn-en" class="px-3 py-1.5 rounded-full font-bold transition-all duration-300">EN</button>
+        </div>
+    </header>
+
+    <div id="loginCard" class="w-full max-w-lg glass-card-pro rounded-3xl p-8 md:p-12 relative z-10 transition-all duration-500 my-auto">
+        
+        <div class="text-center mb-8">
+            <div class="flex justify-center mb-4">
+                <img src="img/ADL.png" alt="Advanced Disaster Labor" class="h-32 w-auto object-contain logo-branding" />
+            </div>
+            <p data-i18n="terminal_subtitle" class="text-[10px] text-zinc-700 font-bold tracking-widest uppercase font-mono mt-4">
+                Advanced Disaster Labor Terminal
+            </p>
+        </div>
+
+        <form id="formLogin" class="space-y-6" autocomplete="off">
+            <div>
+                <label data-i18n="label_user" class="block text-[10px] font-bold text-zinc-700 uppercase tracking-widest mb-2">Usuario Operativo</label>
+                <input type="email" id="correo" required placeholder="admin@adl.com" class="w-full input-cyber rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none font-medium placeholder-zinc-600">
+            </div>
+            <div>
+                <label data-i18n="label_pass" class="block text-[10px] font-bold text-zinc-700 uppercase tracking-widest mb-2">Llave Encriptada</label>
+                <input type="password" id="password" required placeholder="••••••••" class="w-full input-cyber rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none font-mono placeholder-zinc-600 tracking-widest">
+            </div>
+            <div id="mensajeError" class="text-xs text-red-400 font-semibold hidden bg-red-950/90 p-4 rounded-xl border border-red-500/30 text-center"></div>
+            
+            <div class="flex flex-col gap-3 pt-2">
+                <button type="submit" class="w-full btn-glow-pro text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl flex justify-center items-center">
+                    <span data-i18n="btn_login">Inicializar Terminal</span>
+                </button>
+                
+                <a href="index.html" class="w-full btn-back-cyber text-zinc-800 font-bold text-[11px] uppercase tracking-widest py-3.5 rounded-xl flex justify-center items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                    <span data-i18n="btn_back">Regresar Atrás</span>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div id="preloader" class="fixed inset-0 bg-[#020305] flex flex-col justify-center items-center z-50 hidden transition-all duration-700">
+        
+        <div class="w-full max-w-5xl flex flex-col items-center justify-center text-center p-6 relative">
+            
+            <div class="w-full h-[400px] relative flex items-center justify-center" style="perspective: 1500px;">
+                <div id="stage3D" class="w-full max-w-3xl h-full flex items-center justify-center relative adl-preloader-logo">
+                    
+                    <svg class="absolute w-[520px] h-[520px] text-zinc-800/30 pointer-events-none" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="0.25">
+                        <circle class="blueprint-ring" cx="100" cy="100" r="85" stroke-dasharray="4, 4" />
+                        <circle class="blueprint-ring" cx="100" cy="100" r="65" />
+                        <line x1="10" y1="100" x2="190" y2="100" stroke-dasharray="2, 8" />
+                        <line x1="100" y1="10" x2="100" y2="190" stroke-dasharray="2, 8" />
+                    </svg>
+                    
+                    <div class="absolute w-[450px] h-[450px] bg-amber-500/[0.03] blur-[130px] rounded-full pointer-events-none"></div>
+
+                    <div class="relative z-10 w-full max-w-xl px-4">
+                        <img src="img/ADL.png" 
+                             alt="ADL Skilled Labor & Demolition" 
+                             class="w-full h-auto object-contain logo-img-target"
+                             style="filter: drop-shadow(0 0 15px rgba(255,255,255,0.6));" />
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="opacity-0 space-y-3 flex flex-col items-center w-full transition-all duration-1000 mt-2" id="preloaderText" style="transform: translateY(20px);">
+                <h3 class="text-white font-header font-bold text-2xl tracking-[0.3em] uppercase">ADVANCED DISASTER LABOR</h3>
+                <p class="text-[11px] text-zinc-500 font-mono tracking-widest uppercase flex items-center gap-2">
+                    <span class="inline-block w-1.5 h-1.5 bg-amber-500 rounded-full animate-ping"></span>
+                    <span data-i18n="preloader_sync">Sincronizando Entorno e Infraestructura Core</span>
+                </p>
+                
+                <div class="w-full max-w-sm bg-zinc-950 h-[2px] rounded-full mt-4 border border-zinc-900/60 overflow-hidden">
+                    <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-yellow-400 h-full w-0 rounded-full transition-all" id="progressBar" style="transition-timing-function: cubic-bezier(0.1, 0.9, 0.2, 1);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="mb-4 text-[9px] text-zinc-600 font-mono tracking-widest uppercase relative z-10">
+        ADL CRYPTO-CORE V3.0 • <span data-i18n="footer_text">INTERFAZ DE INGENIERÍA ACTIVA</span>
+    </footer>
+
+    <script>
+        // DICCIONARIO CENTRAL DE TRADUCCIÓN BILINGÜE
+        const translations = {
+            es: {
+                terminal_subtitle: "Advanced Disaster Labor Terminal",
+                label_user: "Usuario Operativo",
+                label_pass: "Llave Encriptada",
+                btn_login: "Inicializar Terminal",
+                btn_back: "Regresar Atrás",
+                preloader_sync: "Sincronizando Entorno e Infraestructura Core",
+                footer_text: "INTERFAZ DE INGENIERÍA ACTIVA",
+                error_exclusive: "❌ Acceso denegado. Terminal de administración exclusiva.",
+                error_critical: "❌ Falla de comunicación crítica con core login.php."
+            },
+            en: {
+                terminal_subtitle: "Advanced Disaster Labor Terminal",
+                label_user: "Operational User ID",
+                label_pass: "Encrypted Token Key",
+                btn_login: "Initialize Core Terminal",
+                btn_back: "Go Back",
+                preloader_sync: "Synchronizing Core Environment & Infrastructure",
+                footer_text: "ACTIVE ENGINEERING INTERFACE",
+                error_exclusive: "❌ Access denied. Exclusive administrative terminal.",
+                error_critical: "❌ Critical connection failure with core login.php."
+            }
+        };
+
+        // Variable global para capturar errores dinámicos segun idioma
+        let currentLang = 'es';
+
+        // MOTOR ACTIVO PARA CAMBIO DE IDIOMA
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('adl_lang', lang);
+            
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            const btnEs = document.getElementById('btn-es');
+            const btnEn = document.getElementById('btn-en');
+            
+            if (lang === 'es') {
+                btnEs.className = "px-3 py-1.5 rounded-full font-bold transition-all duration-300 bg-amber-500 text-black";
+                btnEn.className = "px-3 py-1.5 rounded-full font-bold transition-all duration-300 text-zinc-400 hover:text-white";
+            } else {
+                btnEn.className = "px-3 py-1.5 rounded-full font-bold transition-all duration-300 bg-sky-500 text-black";
+                btnEs.className = "px-3 py-1.5 rounded-full font-bold transition-all duration-300 text-zinc-400 hover:text-white";
+            }
+        }
+
+        // Leer idioma guardado en el index al cargar el documento
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLang = localStorage.getItem('adl_lang') || 'es';
+            changeLanguage(savedLang);
+        });
+
+        // MOTOR DE PARTÍCULAS MEJORADO: Gran densidad y destellos neón ámbar (#ff9100)
+        const card = document.getElementById('loginCard');
+        const grid = document.getElementById('gridBg');
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeCanvas); resizeCanvas();
+        
+        const particleArray = [];
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width; 
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2.5 + 1.2; 
+                this.speedX = (Math.random() - 0.5) * 0.35;
+                this.speedY = (Math.random() - 0.5) * 0.35; 
+                this.opacity = Math.random() * 0.6 + 0.3; 
+            }
+            update() { this.x += this.speedX; this.y += this.speedY; }
+            draw() { 
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 145, 0, ${this.opacity})`; 
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#ff9100'; 
+                ctx.beginPath(); 
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
+                ctx.fill(); 
+                ctx.restore();
+            }
+        }
+        
+        for (let i = 0; i < 90; i++) particleArray.push(new Particle());
+        
+        document.addEventListener('mousemove', (e) => {
+            grid.style.setProperty('--mouse-x', `${e.clientX}px`); grid.style.setProperty('--mouse-y', `${e.clientY}px`);
+            card.style.transform = `rotateY(${(window.innerWidth / 2 - e.clientX) / -35}deg) rotateX(${(window.innerHeight / 2 - e.clientY) / 35}deg)`;
+        });
+        
+        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); particleArray.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animate); }
+        animate();
+
+        // Inicialización y transición fluida del Preloader 3D
+        document.getElementById('formLogin').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const errorDiv = document.getElementById('mensajeError');
+            errorDiv.classList.add('hidden');
+
+            const datos = { correo: document.getElementById('correo').value, password: document.getElementById('password').value };
+
+            fetch('http://localhost/MyAdmin/login.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify(datos)
+            })
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); })
+            .then(res => {
+                if (res.status === 'success' && res.user && res.user.rol === 'admin') {
+                    localStorage.setItem('admin_session', 'active');
+                    card.classList.add('opacity-0', 'scale-95');
+                    
+                    setTimeout(() => {
+                        card.classList.add('hidden');
+                        const preloader = document.getElementById('preloader');
+                        const stage3D = document.getElementById('stage3D');
+                        const preloaderText = document.getElementById('preloaderText');
+                        const progressBar = document.getElementById('progressBar');
+                        
+                        preloader.classList.remove('hidden');
+                        stage3D.classList.add('start-3d-stage');
+                        
+                        setTimeout(() => {
+                            preloaderText.style.opacity = '1';
+                            preloaderText.style.transform = 'translateY(0)';
+                        }, 600);
+                        
+                        progressBar.style.transitionDuration = '7600ms';
+                        setTimeout(() => { progressBar.style.width = '100%'; }, 100);
+
+                        setTimeout(() => { window.location.href = 'admin_dashboard.html'; }, 7600);
+                    }, 500);
+                } else {
+                    errorDiv.textContent = translations[currentLang]['error_exclusive'];
+                    errorDiv.classList.remove('hidden');
+                }
+            })
+            .catch(() => {
+                errorDiv.textContent = translations[currentLang]['error_critical'];
+                errorDiv.classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

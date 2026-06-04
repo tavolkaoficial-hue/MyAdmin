@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyAdmin - Nueva Asignación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700;800&family=Space+Grotesk:wght=500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #030406; 
+            color: #ffffff;
+            overflow-x: hidden;
+            perspective: 1200px;
+        }
+
+        .font-header { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Lienzo interactivo de partículas en moving de fondo */
+        #particleCanvas {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Rejilla arquitectónica digital de fondo */
+        .grid-cyber {
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(245, 158, 11, 0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(245, 158, 11, 0.012) 1px, transparent 1px);
+            background-size: 50px 50px;
+            background-position: center;
+            mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), black 20%, transparent 60%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Tarjeta de Cristal Líquido Avanzada - Tono más claro y en degradé */
+        .glass-card-pro {
+            background: linear-gradient(135deg, rgba(35, 42, 55, 0.85) 0%, rgba(18, 22, 30, 0.95) 100%);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            box-shadow: 
+                0 40px 80px rgba(0, 0, 0, 0.7),
+                inset 0 1px 1px rgba(255, 255, 255, 0.2),
+                inset 0 0 40px rgba(245, 158, 11, 0.05);
+            transform-style: preserve-3d;
+        }
+
+        /* Campos de Entrada Estilo Panel de Control Profundo */
+        .input-cyber {
+            background: rgba(5, 6, 8, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: 
+                inset 0 4px 8px rgba(0, 0, 0, 0.6), 
+                0 1px 0 rgba(255, 255, 255, 0.02);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .input-cyber:focus {
+            border-color: #f59e0b;
+            background: rgba(8, 10, 14, 0.95);
+            box-shadow: 
+                inset 0 2px 4px rgba(0, 0, 0, 0.8),
+                0 0 20px rgba(245, 158, 11, 0.15);
+        }
+
+        /* Contenedor Flotante de Sugerencias Glassmorphism (Tipo Uber Pro) */
+        .sugerencias-box {
+            position: absolute; 
+            z-index: 50; 
+            width: 100%;
+            background: rgba(13, 16, 22, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            border-radius: 0.75rem; 
+            max-height: 220px; 
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+        }
+        .sugerencia-item {
+            padding: 0.75rem 1rem; 
+            text-align: left; 
+            font-size: 0.825rem;
+            color: #9ca3af; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        .sugerencia-item:hover { 
+            background: rgba(245, 158, 11, 0.15); 
+            color: #f59e0b; 
+        }
+
+        /* Botón de Ejecución Industrial con Relieve */
+        .btn-glow-pro {
+            position: relative;
+            background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+            box-shadow: 
+                0 0 20px rgba(245, 158, 11, 0.15),
+                0 5px 0 #78350f,
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            transition: all 0.15s ease;
+            transform-style: preserve-3d;
+        }
+        .btn-glow-pro:hover {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 0 25px rgba(245, 158, 11, 0.3),
+                0 6px 0 #78350f;
+        }
+        .btn-glow-pro:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 0 10px rgba(245, 158, 11, 0.1),
+                0 1px 0 #78350f;
+        }
+
+        /* Animación Premium para el Logo ADL con Efecto Neón Intenso */
+        @keyframes logo-pulse {
+            0%, 100% { 
+                transform: scale(1); 
+                filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.6)) drop-shadow(0 0 25px rgba(245, 158, 11, 0.4)); 
+            }
+            50% { 
+                transform: scale(1.03); 
+                filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.9)) drop-shadow(0 0 45px rgba(245, 158, 11, 0.6)); 
+            }
+        }
+        .logo-animated {
+            animation: logo-pulse 4s infinite ease-in-out;
+        }
+
+        /* Personalización sutil para los checkboxes dentro del entorno ciber */
+        .checkbox-cyber {
+            accent-color: #f59e0b;
+        }
+
+        @keyframes float-structural-1 {
+            0% { transform: translateY(0px) rotate(0deg) translateZ(0px); }
+            50% { transform: translateY(-25px) rotate(180deg) translateZ(30px); }
+            100% { transform: translateY(0px) rotate(360deg) translateZ(0px); }
+        }
+        @keyframes float-structural-2 {
+            0% { transform: translateY(0px) rotate(360deg) scale(0.95); }
+            50% { transform: translateY(20px) rotate(180deg) scale(1.05); }
+            100% { transform: translateY(0px) rotate(0deg) scale(0.95); }
+        }
+
+        .meta-shape {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.04;
+            transform-style: preserve-3d;
+            filter: blur(0.5px);
+            z-index: 3;
+        }
+
+        /* Selector de Idiomas Cyberpunk */
+        .lang-switch-btn {
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen pb-12 relative bg-[#030406]">
+
+    <canvas id="particleCanvas"></canvas>
+    
+    <div class="grid-cyber" id="gridBg"></div>
+
+    <div class="meta-shape top-28 left-12 w-20 h-20 border-2 border-amber-500 rounded-xl" style="animation: float-structural-1 18s infinite ease-in-out;"></div>
+    <div class="meta-shape bottom-24 left-20 w-32 h-32 border border-dashed border-zinc-500 rounded-full flex items-center justify-center" style="animation: float-structural-2 26s infinite ease-in-out;">
+        <div class="w-14 h-14 border border-zinc-700 rounded-full"></div>
+    </div>
+    <div class="meta-shape top-40 right-16 w-16 h-16 border border-amber-500/60 transform rotate-45" style="animation: float-structural-1 14s infinite ease-in-out 1s;"></div>
+
+    <nav class="bg-[#111318]/75 backdrop-blur-xl border-b border-zinc-800/80 px-6 py-3 flex justify-between items-center relative z-10 shadow-xl">
+        <div class="flex items-center">
+            <img src="img/ADL.png" alt="ADL Logo" class="h-20 w-auto object-contain logo-animated">
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="flex bg-zinc-950/80 rounded-xl p-1 border border-zinc-800/80 font-mono text-[10px]">
+                <button onclick="changeLanguage('es')" id="btn-lang-es" class="lang-switch-btn px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-wider text-black bg-amber-500 shadow-lg shadow-amber-500/10">ES</button>
+                <button onclick="changeLanguage('en')" id="btn-lang-en" class="lang-switch-btn px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-300">EN</button>
+            </div>
+            <a href="admin_dashboard.html" id="btn_volver" class="text-[10px] bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl border border-zinc-800 transition active:scale-95">
+                ← Volver al Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <main class="max-w-2xl mx-auto px-4 mt-10 relative z-10">
+        <div class="glass-card-pro rounded-2xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-500/30 to-transparent"></div>
+            
+            <div class="mb-8 border-b border-zinc-800/60 pb-5">
+                <h1 id="txt_titulo" class="text-2xl font-bold text-amber-600 tracking-tight font-header">Registrar Obra y Asignar Personal</h1>
+                <p id="txt_subtitulo" class="text-[11px] text-zinc-400 font-medium tracking-wide mt-1.5 uppercase font-mono">Consola Operativa de Control y Logística Terrestre</p>
+            </div>
+
+            <form id="formProyecto" class="space-y-6" autocomplete="off">
+                
+                <div class="space-y-5">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] bg-amber-500/10 text-amber-500 font-black px-2 py-0.5 rounded border border-amber-500/20 font-mono">01</span>
+                        <h3 id="txt_seccion1" class="text-xs font-bold text-zinc-300 uppercase tracking-widest font-header">Detalles del Proyecto / Obra</h3>
+                    </div>
+                    
+                    <div>
+                        <label id="lbl_nombre_proyecto" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Nombre del Proyecto o Cliente *</label>
+                        <input type="text" id="nombre_proyecto" required placeholder="Ej. Remodelación Oficinas Centro" 
+                            class="w-full input-cyber rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-medium placeholder-zinc-700">
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div class="relative">
+                            <label id="lbl_direccion" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Dirección Completa * (Sugerencias Inteligentes)</label>
+                            <input type="text" id="direccion" required placeholder="Empieza a escribir una calle..." 
+                                class="w-full input-cyber rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-medium placeholder-zinc-700">
+                            <div id="listaSugerencias" class="sugerencias-box hidden"></div>
+                        </div>
+                        <div>
+                            <label id="lbl_empresa_aliada" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Empresa Aliada / Proveedor (Opcional)</label>
+                            <input type="text" id="empresa_aliada" placeholder="Ej. Materiales Corona S.A." 
+                                class="w-full input-cyber rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-medium placeholder-zinc-700">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-b border-zinc-800/40 my-2"></div>
+
+                <div class="space-y-5">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] bg-amber-500/10 text-amber-500 font-black px-2 py-0.5 rounded border border-amber-500/20 font-mono">02</span>
+                        <h3 id="txt_seccion2" class="text-xs font-bold text-zinc-300 uppercase tracking-widest font-header">Programación de Jornada</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label id="lbl_asignar_personal" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Asignar Personal / Empleados (Selección Múltiple) *</label>
+                            <div id="contenedor_empleados" class="w-full input-cyber rounded-xl p-3 max-h-40 overflow-y-auto space-y-2 text-sm">
+                                <p class="text-xs text-zinc-500 font-mono italic animate-pulse">Cargando la lista de personal activo...</p>
+                            </div>
+                        </div>
+                        <div>
+                            <label id="lbl_fecha_laboral" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Fecha de Trabajo Planificada *</label>
+                            <input type="date" id="fecha_laboral" required class="w-full input-cyber rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-medium font-mono">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-5">
+                        <div>
+                            <label id="lbl_hora_inicio" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Hora Entrada *</label>
+                            <input type="time" id="hora_inicio" required class="w-full input-cyber rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-medium font-mono">
+                        </div>
+                        <div>
+                            <label id="lbl_hora_fin" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Hora Salida *</label>
+                            <input type="time" id="hora_fin" required class="w-full input-cyber rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-medium font-mono">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label id="lbl_detalles_trabajo" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-2">Detalles del Trabajo / Materiales Críticos *</label>
+                        <textarea id="detalles_trabajo" required rows="3" placeholder="Ej. Instalar drywall en la cocina, llevar taladro y perfiles galvanizados..." 
+                            class="w-full input-cyber rounded-xl px-4 py-3 text-sm text-white focus:outline-none font-medium placeholder-zinc-700 resize-none leading-relaxed"></textarea>
+                    </div>
+                </div>
+
+                <div id="mensajeEstado" class="text-xs font-mono p-3 rounded-lg bg-zinc-950/40 border border-zinc-800/60 text-center hidden"></div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full btn-glow-pro text-black font-black text-xs uppercase tracking-widest py-4 rounded-xl flex justify-center items-center space-x-2">
+                        <span id="btn_texto_submit">Despachar y Asignar Obra Masiva</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // ========================================================
+        // ENGINE DE TRADUCCIÓN BILINGÜE MULTI-ATRIBUTO (ES / EN)
+        // ========================================================
+        const dictionary = {
+            es: {
+                btn_volver: "← Volver al Dashboard",
+                txt_titulo: "Registrar Obra y Asignar Personal",
+                txt_subtitulo: "Consola Operativa de Control y Logística Terrestre",
+                txt_seccion1: "Detalles del Proyecto / Obra",
+                lbl_nombre_proyecto: "Nombre del Proyecto o Cliente *",
+                ph_nombre_proyecto: "Ej. Remodelación Oficinas Centro",
+                lbl_direccion: "Dirección Completa * (Sugerencias Inteligentes)",
+                ph_direccion: "Empieza a escribir una calle...",
+                lbl_empresa_aliada: "Empresa Aliada / Proveedor (Opcional)",
+                ph_empresa_aliada: "Ej. Materiales Corona S.A.",
+                txt_seccion2: "Programación de Jornada",
+                lbl_asignar_personal: "Asignar Personal / Empleados (Selección Múltiple) *",
+                txt_loading_staff: "Cargando la lista de personal activo...",
+                txt_no_staff: "No hay empleados activos con Face ID",
+                txt_err_staff: "Error al cargar la lista de personal",
+                txt_conn_err: "Error de conexión local",
+                lbl_fecha_laboral: "Fecha de Trabajo Planificada *",
+                lbl_hora_inicio: "Hora Entrada *",
+                lbl_hora_fin: "Hora Salida *",
+                lbl_detalles_trabajo: "Detalles del Trabajo / Materiales Críticos *",
+                ph_detalles_trabajo: "Ej. Instalar drywall en la cocina, llevar taladro y perfiles galvanizados...",
+                btn_texto_submit: "Despachar y Asignar Obra Masiva",
+                msg_error_seleccion: "❌ Por favor, selecciona al menos un empleado para despachar la obra.",
+                msg_preparando: "Preparando despacho para {n} empleados...",
+                msg_exito_global: "✅ ¡Éxito! Se han despachado {n} asignaciones de obra correctamente.",
+                msg_error_parcial: "⚠️ Despacho parcial: {e} asignados con éxito, {f} fallaron. Verifica el historial.",
+                alert_exito: "¡Asignación múltiple completada! Se crearon {n} registros independientes en el Dashboard."
+            },
+            en: {
+                btn_volver: "← Back to Dashboard",
+                txt_titulo: "Register Project & Assign Personnel",
+                txt_subtitulo: "Operational Control & Ground Logistics Terminal",
+                txt_seccion1: "Project / Construction Details",
+                lbl_nombre_proyecto: "Project or Client Name *",
+                ph_nombre_proyecto: "e.g., Downtown Office Remodeling",
+                lbl_direccion: "Full Address * (Smart Suggestions)",
+                ph_direccion: "Start typing a street address...",
+                lbl_empresa_aliada: "Allied Company / Vendor (Optional)",
+                ph_empresa_aliada: "e.g., Corona Materials Inc.",
+                txt_seccion2: "Shift Programming & Schedule",
+                lbl_asignar_personal: "Assign Personnel / Employees (Multiple Selection) *",
+                txt_loading_staff: "Loading active personnel roster...",
+                txt_no_staff: "No active employees found with Face ID",
+                txt_err_staff: "Error loading personnel registry",
+                txt_conn_err: "Local connection failure",
+                lbl_fecha_laboral: "Planned Work Date *",
+                lbl_hora_inicio: "Clock-In Time *",
+                lbl_hora_fin: "Clock-Out Time *",
+                lbl_detalles_trabajo: "Job Description / Critical Materials *",
+                ph_detalles_trabajo: "e.g., Install drywall in kitchen, bring drill and galvanized frames...",
+                btn_texto_submit: "Dispatch and Assign Bulk Project",
+                msg_error_seleccion: "❌ Please select at least one employee to dispatch this project.",
+                msg_preparando: "Preparing construction dispatch for {n} employees...",
+                msg_exito_global: "✅ Success! {n} job assignments dispatched correctly.",
+                msg_error_parcial: "⚠️ Partial dispatch: {e} succeeded, {f} failed. Review history log.",
+                alert_exito: "Bulk deployment complete! {n} individual logs created in the Dashboard."
+            }
+        };
+
+        let currentLang = localStorage.getItem('adl_lang') || 'es';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('adl_lang', lang);
+
+            const dict = dictionary[lang];
+
+            // Textos estándar e IDs
+            document.getElementById('btn_volver').textContent = dict.btn_volver;
+            document.getElementById('txt_titulo').textContent = dict.txt_titulo;
+            document.getElementById('txt_subtitulo').textContent = dict.txt_subtitulo;
+            document.getElementById('txt_seccion1').textContent = dict.txt_seccion1;
+            document.getElementById('lbl_nombre_proyecto').textContent = dict.lbl_nombre_proyecto;
+            document.getElementById('lbl_direccion').textContent = dict.lbl_direccion;
+            document.getElementById('lbl_empresa_aliada').textContent = dict.lbl_empresa_aliada;
+            document.getElementById('txt_seccion2').textContent = dict.txt_seccion2;
+            document.getElementById('lbl_asignar_personal').textContent = dict.lbl_asignar_personal;
+            document.getElementById('lbl_fecha_laboral').textContent = dict.lbl_fecha_laboral;
+            document.getElementById('lbl_hora_inicio').textContent = dict.lbl_hora_inicio;
+            document.getElementById('lbl_hora_fin').textContent = dict.lbl_hora_fin;
+            document.getElementById('lbl_detalles_trabajo').textContent = dict.lbl_detalles_trabajo;
+            document.getElementById('btn_texto_submit').textContent = dict.btn_texto_submit;
+
+            // Actualización dinámica de Placeholders interconectados
+            document.getElementById('nombre_proyecto').placeholder = dict.ph_nombre_proyecto;
+            document.getElementById('direccion').placeholder = dict.ph_direccion;
+            document.getElementById('empresa_aliada').placeholder = dict.ph_empresa_aliada;
+            document.getElementById('detalles_trabajo').placeholder = dict.ph_detalles_trabajo;
+
+            // Refrescar el estado visual de los selectores UI superiores
+            if(lang === 'es') {
+                document.getElementById('btn-lang-es').className = "lang-switch-btn px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-wider text-black bg-amber-500 shadow-lg shadow-amber-500/10";
+                document.getElementById('btn-lang-en').className = "lang-switch-btn px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-300";
+            } else {
+                document.getElementById('btn-lang-es').className = "lang-switch-btn px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-wider text-zinc-500 hover:text-zinc-300";
+                document.getElementById('btn-lang-en').className = "lang-switch-btn px-2.5 py-1.5 rounded-lg font-bold uppercase tracking-wider text-black bg-amber-500 shadow-lg shadow-amber-500/10";
+            }
+
+            // Si la lista de empleados está cargando, traducimos el estado
+            const loadingMsg = document.querySelector("#contenedor_empleados p");
+            if (loadingMsg && loadingMsg.classList.contains('animate-pulse')) {
+                loadingMsg.textContent = dict.txt_loading_staff;
+            }
+        }
+
+        // ========================================================
+        // INTERFAZ DE ANIMACIÓN Y FÍSICA DE RENDIMIENTO DE FONDO
+        // ========================================================
+        const card = document.querySelector('.glass-card-pro');
+        const grid = document.getElementById('gridBg');
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const particleArray = [];
+        const numberOfParticles = 110; 
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3.2 + 1.0; 
+                this.speedX = (Math.random() - 0.5) * 0.95; 
+                this.speedY = (Math.random() - 0.5) * 0.95; 
+                this.opacity = Math.random() * 0.55 + 0.25; 
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+            }
+            draw() {
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = 'rgba(245, 158, 11, 0.6)';
+                ctx.fillStyle = `rgba(245, 158, 11, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0; 
+            }
+        }
+
+        for (let i = 0; i < numberOfParticles; i++) {
+            particleArray.push(new Particle());
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            grid.style.setProperty('--mouse-x', `${e.clientX}px`);
+            grid.style.setProperty('--mouse-y', `${e.clientY}px`);
+
+            const xAxis = (window.innerWidth / 2 - e.clientX) / 45;
+            const yAxis = (window.innerHeight / 2 - e.clientY) / 45;
+            if(card) {
+                card.style.transform = `rotateY(${-xAxis}deg) rotateX(${yAxis}deg)`;
+            }
+
+            if (Math.random() > 0.25) { 
+                const p = new Particle();
+                p.x = e.clientX;
+                p.y = e.clientY;
+                p.size = Math.random() * 4.0 + 1.5; 
+                p.speedX = (Math.random() - 0.5) * 2.5; 
+                p.speedY = (Math.random() - 0.5) * 2.5;
+                p.opacity = 0.85;
+                particleArray.push(p);
+                if (particleArray.length > 220) particleArray.shift();
+            }
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particleArray.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        document.addEventListener('mouseleave', () => {
+            if(card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        });
+
+        // ========================================================
+        // LOGICA DE CARGA MÚLTIPLE DE TRABAJADORES
+        // ========================================================
+        document.getElementById('fecha_laboral').value = new Date().toISOString().split('T')[0];
+        document.getElementById('hora_inicio').value = "08:00";
+        document.getElementById('hora_fin').value = "17:00";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            changeLanguage(currentLang);
+            cargarEmpleadosDinamicos();
+        });
+
+        function cargarEmpleadosDinamicos() {
+            const contenedor = document.getElementById('contenedor_empleados');
+            const dict = dictionary[currentLang];
+
+            fetch('http://localhost/MyAdmin/obtener_empleados_activos.php')
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        if (res.data.length === 0) {
+                            contenedor.innerHTML = `<p class="text-xs text-zinc-500 italic">${dict.txt_no_staff}</p>`;
+                            return;
+                        }
+
+                        contenedor.innerHTML = '';
+                        
+                        res.data.forEach(emp => {
+                            const label = document.createElement('label');
+                            label.className = 'flex items-center space-x-3 p-1.5 hover:bg-zinc-900/60 rounded-lg cursor-pointer transition select-none';
+                            
+                            label.innerHTML = `
+                                <input type="checkbox" name="id_usuario_multiple" value="${emp.id}" class="checkbox-cyber w-4 h-4 rounded text-amber-500 bg-zinc-900 border-zinc-700 focus:ring-0">
+                                <span class="text-zinc-300 font-medium">${emp.nombre}</span>
+                            `;
+                            contenedor.appendChild(label);
+                        });
+                    } else {
+                        contenedor.innerHTML = `<p class="text-xs text-rose-400">${dict.txt_err_staff}</p>`;
+                    }
+                })
+                .catch(() => {
+                    contenedor.innerHTML = `<p class="text-xs text-rose-400">${dict.txt_conn_err}</p>`;
+                });
+        }
+
+        const inputDireccion = document.getElementById('direccion');
+        const listaSugerencias = document.getElementById('listaSugerencias');
+        let timerBusqueda;
+
+        inputDireccion.addEventListener('input', function() {
+            clearTimeout(timerBusqueda);
+            const query = inputDireccion.value;
+
+            if (query.length < 4) {
+                listaSugerencias.classList.add('hidden');
+                return;
+            }
+
+            timerBusqueda = setTimeout(() => {
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.length > 0) {
+                            listaSugerencias.innerHTML = '';
+                            data.forEach(item => {
+                                const div = document.createElement('div');
+                                div.className = 'sugerencia-item';
+                                div.textContent = item.display_name;
+                                div.onclick = function() {
+                                    inputDireccion.value = item.display_name;
+                                    listaSugerencias.classList.add('hidden');
+                                };
+                                listaSugerencias.appendChild(div);
+                            });
+                            listaSugerencias.classList.remove('hidden');
+                        } else {
+                            listaSugerencias.classList.add('hidden');
+                        }
+                    })
+                    .catch(() => listaSugerencias.classList.add('hidden'));
+            }, 400);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target !== inputDireccion) {
+                listaSugerencias.classList.add('hidden');
+            }
+        });
+
+        // ========================================================
+        // ENVÍO DE FORMULARIOS INDIVIDUALES EN BUCLE (ASÍNCRONO)
+        // ========================================================
+        document.getElementById('formProyecto').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const dict = dictionary[currentLang];
+            const msgDiv = document.getElementById('mensajeEstado');
+            msgDiv.className = "text-xs font-mono text-amber-400 p-3 rounded-lg bg-zinc-950/40 border border-zinc-800/60 text-center";
+            msgDiv.classList.remove('hidden');
+
+            const checkboxes = document.querySelectorAll('input[name="id_usuario_multiple"]:checked');
+            const empleadosSeleccionados = Array.from(checkboxes).map(cb => cb.value);
+
+            if (empleadosSeleccionados.length === 0) {
+                msgDiv.className = "text-xs font-mono text-rose-400 p-3 rounded-lg bg-zinc-950/40 border border-rose-500/20 text-center";
+                msgDiv.textContent = dict.msg_error_seleccion;
+                return;
+            }
+
+            msgDiv.textContent = dict.msg_preparando.replace('{n}', empleadosSeleccionados.length);
+
+            const horarioFormateado = `${document.getElementById('hora_inicio').value} - ${document.getElementById('hora_fin').value}`;
+            
+            const baseData = {
+                nombre_proyecto: document.getElementById('nombre_proyecto').value,
+                direccion: document.getElementById('direccion').value,
+                empresa_aliada: document.getElementById('empresa_aliada').value,
+                fecha_laboral: document.getElementById('fecha_laboral').value,
+                horario_estimado: horarioFormateado,
+                detalles_trabajo: document.getElementById('detalles_trabajo').value
+            };
+
+            let exitos = 0;
+            let fallos = 0;
+
+            for (const idEmpleado of empleadosSeleccionados) {
+                const datosFormulario = { ...baseData, id_usuario: idEmpleado };
+
+                try {
+                    const response = await fetch('http://localhost/MyAdmin/guardar_proyecto.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(datosFormulario)
+                    });
+
+                    if (!response.ok) throw new Error('HTTP error');
+                    
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        exitos++;
+                    } else {
+                        fallos++;
+                    }
+                } catch (error) {
+                    console.error(`Error enviando empleado ID ${idEmpleado}:`, error);
+                    fallos++;
+                }
+            }
+
+            if (fallos === 0) {
+                msgDiv.className = "text-xs font-mono text-emerald-400 p-3 rounded-lg bg-zinc-950/40 border border-emerald-500/20 text-center";
+                msgDiv.textContent = dict.msg_exito_global.replace('{n}', exitos);
+                
+                document.getElementById('formProyecto').reset();
+                document.getElementById('fecha_laboral').value = new Date().toISOString().split('T')[0];
+                document.getElementById('hora_inicio').value = "08:00";
+                document.getElementById('hora_fin').value = "17:00";
+                
+                alert(dict.alert_exito.replace('{n}', exitos));
+                cargarEmpleadosDinamicos(); // Refrescar checks
+            } else {
+                msgDiv.className = "text-xs font-mono text-rose-400 p-3 rounded-lg bg-zinc-950/40 border border-rose-500/20 text-center";
+                msgDiv.textContent = dict.msg_error_parcial.replace('{e}', exitos).replace('{f}', fallos);
+            }
+        });
+    </script>
+</body>
+</html>

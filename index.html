@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADL Skilled Labor & Demolition - Portal Avanzado</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;500;600;700;800&family=Space+Grotesk:wght=500;700&display=swap" rel="stylesheet">
+<style>
+body { 
+font-family: 'Plus Jakarta Sans', sans-serif;
+background-color: #020305; 
+color: #ffffff;
+overflow: hidden;
+perspective: 2000px;
+        }
+.font-header { font-family: 'Space Grotesk', sans-serif; }
+h1, h2 { color: #ce831b; }
+span, p, div { color: rgba(240, 244, 255, 0.9); }
+
+#particleCanvas {
+position: fixed; inset: 0; pointer-events: none; z-index: 1;
+        }
+.grid-cyber {
+position: fixed; inset: 0;
+background-image: linear-gradient(rgba(245, 158, 11, 0.012) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(245, 158, 11, 0.012) 1.5px, transparent 1px);
+background-size: 50px 50px; background-position: center;
+mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0,0,0,1) 5%, rgba(0,0,0,0.4) 30%, transparent 70%);
+-webkit-mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0,0,0,1) 5%, rgba(0,0,0,0.4) 30%, transparent 70%);
+z-index: 2; pointer-events: none;
+        }
+
+/* EFECTO DE LUZ TRASERA PARA CONTRASTE DEL LOGO Y ESLOGAN NEGRO */
+.logo-container-premium {
+position: relative;
+display: inline-block;
+padding: 2rem;
+        }
+.logo-container-premium::before {
+content: "";
+position: absolute;
+top: 50%; left: 50%;
+transform: translate(-50%, -50%);
+width: 110%; height: 110%;
+background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(245, 158, 11, 0.35) 45%, rgba(245, 158, 11, 0.08) 70%, transparent 100%);
+filter: blur(25px);
+z-index: -1;
+pointer-events: none;
+opacity: 0.95;
+animation: pulseAura 4s ease-in-out infinite alternate;
+        }
+
+.logo-branding {
+filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+animation: pulseLogo 4s ease-in-out infinite alternate;
+        }
+
+@keyframes pulseAura {
+0% { opacity: 0.85; width: 105%; height: 105%; filter: blur(25px); }
+100% { opacity: 0.98; width: 120%; height: 120%; filter: blur(30px); }
+        }
+
+@keyframes pulseLogo {
+0% { transform: scale(1); }
+100% { transform: scale(1.03); }
+        }
+
+/* TARJETAS CON PERSPECTIVA TRIDIMENSIONAL ORIGINAL */
+.tilt-card {
+position: relative;
+background: linear-gradient(135deg, rgba(17, 22, 32, 0.75) 0%, rgba(8, 10, 15, 0.93) 100%) !important;
+backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
+border: 1px solid rgba(255, 255, 255, 0.05);
+box-shadow: 0 35px 70px rgba(0, 0, 0, 0.9);
+transform-style: preserve-3d;
+will-change: transform;
+transition: transform 0.15s ease-out, border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+.tilt-card::before {
+content: ""; position: absolute; inset: 0; pointer-events: none;
+background: radial-gradient(circle 250px at var(--card-x, 50%) var(--card-y, 50%), rgba(255,255,255,0.06), transparent 80%);
+z-index: 3; transition: opacity 0.5s; opacity: 0;
+        }
+.tilt-card:hover::before { opacity: 1; }
+
+.tilt-card:hover {
+border-color: rgba(245, 158, 11, 0.45);
+box-shadow: 0 50px 100px rgba(0, 0, 0, 0.95), 0 0 40px rgba(245, 158, 11, 0.12);
+        }
+.tilt-card-admin:hover {
+border-color: rgba(14, 165, 233, 0.45);
+box-shadow: 0 50px 100px rgba(0, 0, 0, 0.95), 0 0 40px rgba(14, 165, 233, 0.12);
+        }
+
+.translate-3d-elements { transform: translateZ(40px); }
+
+.glow-icon {
+background: rgba(255, 255, 255, 0.02);
+border: 1px solid rgba(255, 255, 255, 0.04);
+transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+.tilt-card:hover .glow-icon-emp {
+background: rgba(245, 158, 11, 0.12); border-color: #f59e0b; color: #f59e0b;
+box-shadow: 0 0 25px rgba(245, 158, 11, 0.3); transform: translateZ(55px) scale(1.05);
+        }
+.tilt-card:hover .glow-icon-admin {
+background: rgba(14, 165, 233, 0.12); border-color: #38bdf8; color: #38bdf8;
+box-shadow: 0 0 25px rgba(14, 165, 233, 0.3); transform: translateZ(55px) scale(1.05);
+        }
+
+.animate-reveal {
+opacity: 0; transform: translateY(30px);
+animation: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+@keyframes revealUp { to { opacity: 1; transform: translateY(0); } }
+
+/* BOTÓN SELECTOR DE IDIOMA PREMIUM */
+.lang-selector {
+background: rgba(255, 255, 255, 0.03);
+border: 1px solid rgba(255, 255, 255, 0.08);
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+transition: all 0.3s ease;
+        }
+.lang-selector:hover {
+background: rgba(255, 255, 255, 0.07);
+border-color: rgba(245, 158, 11, 0.4);
+box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+        }
+</style>
+</head>
+<body class="antialiased min-h-screen flex flex-col justify-between relative bg-[#020305] select-none">
+<canvas id="particleCanvas"></canvas>
+<div class="grid-cyber" id="gridBg"></div>
+
+<!-- SELECTOR DE IDIOMA (ESQUINA SUPERIOR DERECHA) -->
+<header class="w-full max-w-5xl mx-auto px-6 pt-6 flex justify-end relative z-30">
+    <div class="lang-selector flex items-center rounded-full p-1.5 space-x-1 text-xs font-mono tracking-wider">
+        <button onclick="changeLanguage('es')" id="btn-es" class="px-3 py-1.5 rounded-full font-bold transition-all duration-300 bg-amber-500 text-black">ES</button>
+        <button onclick="changeLanguage('en')" id="btn-en" class="px-3 py-1.5 rounded-full font-bold transition-all duration-300 text-zinc-400 hover:text-white">EN</button>
+    </div>
+</header>
+
+<!-- CONTENIDO PRINCIPAL -->
+<main class="flex-1 flex flex-col items-center justify-center px-4 py-2 relative z-10 w-full max-w-5xl mx-auto">
+    
+    <!-- BRANDING LOGO CON BACKLIGHT AURA -->
+    <div class="text-center mb-8 animate-reveal" style="animation-delay: 0.1s;">
+        <div class="logo-container-premium mb-2">
+            <img src="img/ADL.png" alt="ADL Skilled Labor & Demolition" class="h-44 sm:h-52 w-auto mx-auto object-contain logo-branding" />
+        </div>
+        <h1 data-i18n="subtitle" class="text-[10px] font-mono uppercase tracking-[0.5em] text-zinc-400 mt-2">Módulo Operativo de Autenticación</h1>
+        <p data-i18n="title" class="text-xl font-bold text-zinc-300 mt-1 font-header tracking-wide">Seleccione el ecosistema de acceso</p>
+    </div>
+
+    <!-- CONTENEDOR DE OPCIONES INTERACTIVAS 3D -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl px-4">
+        
+        <!-- OPCIÓN: OPERARIO / EMPLEADO -->
+        <div class="tilt-card rounded-2xl p-8 flex flex-col justify-between items-start group cursor-pointer min-h-[280px] animate-reveal" style="animation-delay: 0.2s;" onclick="redireccionar('empleado_app.html')">
+            <div class="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent"></div>
+            
+            <div class="w-full translate-3d-elements">
+                <div class="glow-icon glow-icon-emp w-14 h-14 rounded-xl flex items-center justify-center text-2xl mb-6 text-zinc-400 font-mono">
+                    👷‍♂️
+                </div>
+                <h2 data-i18n="emp_card_title" class="text-2xl font-bold font-header text-white group-hover:text-amber-500 transition-colors tracking-wide">Portal de Operarios</h2>
+                <p data-i18n="emp_card_desc" class="text-xs text-zinc-400 mt-3.5 leading-relaxed font-medium">
+                    Gestión biométrica para trabajadores en campo. Sincroniza check-in/out, geolocalización satelital por coordenadas de obra y carga evidencias fotográficas de tus jornadas.
+                </p>
+            </div>
+            
+            <div class="mt-6 flex items-center space-x-2 text-[10px] font-mono tracking-[0.2em] text-amber-500 uppercase font-black translate-3d-elements">
+                <span data-i18n="emp_btn">Acceder a Mi Turno</span>
+                <span class="transform group-hover:translate-x-2 transition-transform duration-300">➔</span>
+            </div>
+        </div>
+
+        <!-- OPCIÓN: PANEL ADMINISTRATIVO -->
+        <div class="tilt-card tilt-card-admin rounded-2xl p-8 flex flex-col justify-between items-start group cursor-pointer min-h-[280px] animate-reveal" style="animation-delay: 0.3s;" onclick="redireccionar('login.html')">
+            <div class="absolute top-0 left-0 w-full h-[2.5px] bg-gradient-to-r from-transparent via-sky-500/50 to-transparent"></div>
+            
+            <div class="w-full translate-3d-elements">
+                <div class="glow-icon glow-icon-admin w-14 h-14 rounded-xl flex items-center justify-center text-2xl mb-6 text-zinc-400">
+                    🖥️
+                </div>
+                <h2 data-i18n="admin_card_title" class="text-2xl font-bold font-header text-white group-hover:text-sky-400 transition-colors tracking-wide">Consola de Control</h2>
+                <p class="text-xs text-zinc-400 mt-3.5 leading-relaxed font-medium" data-i18n="admin_card_desc">
+                    Terminal central de auditoría. Monitorea asistencias en vivo, valida ubicaciones de cuadrillas, configura algoritmos de retención impositiva (Taxes) y exporta nóminas oficiales en PDF.
+                </p>
+            </div>
+            
+            <div class="mt-6 flex items-center space-x-2 text-[10px] font-mono tracking-[0.2em] text-sky-400 uppercase font-black translate-3d-elements">
+                <span data-i18n="admin_btn">Terminal de Auditoría</span>
+                <span class="transform group-hover:translate-x-2 transition-transform duration-300">➔</span>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="w-full text-center py-6 border-t border-zinc-900/40 bg-[#0b0d13]/25 backdrop-blur-lg relative z-10 font-mono text-[9px] text-zinc-600 tracking-[0.2em] uppercase">
+    &copy; 2026 ADL SKILLED LABOR & DEMOLITION &bull; <span data-i18n="footer_text">INFRAESTRUCTURA DE CONTROL DIGITAL</span>
+</footer>
+
+<!-- CONTROLADORES CINEMÁTICOS, PARALLAX 3D E TRADUCCIÓN -->
+<script>
+// DICCIONARIO DE TRADUCCIÓN ULTRA-PREMIUM (FÁCIL DE AMPLIAR)
+const translations = {
+    es: {
+        subtitle: "Módulo Operativo de Autenticación",
+        title: "Seleccione el ecosistema de acceso",
+        emp_card_title: "Portal de Operarios",
+        emp_card_desc: "Gestión biométrica para trabajadores en campo. Sincroniza check-in/out, geolocalización satelital por coordenadas de obra y carga evidencias fotográficas de tus jornadas.",
+        emp_btn: "Acceder a Mi Turno",
+        admin_card_title: "Consola de Control",
+        admin_card_desc: "Terminal central de auditoría. Monitorea asistencias en vivo, valida ubicaciones de cuadrillas, configura algoritmos de retención impositiva (Taxes) y exporta nóminas oficiales en PDF.",
+        admin_btn: "Terminal de Auditoría",
+        footer_text: "INFRAESTRUCTURA DE CONTROL DIGITAL"
+    },
+    en: {
+        subtitle: "Operational Authentication Module",
+        title: "Select your access ecosystem",
+        emp_card_title: "Field Workforce Portal",
+        emp_card_desc: "Biometric management for field workers. Synchronize clock-in/out, live GPS tracking by jobsite coordinates, and upload real-time photographic work logs.",
+        emp_btn: "Access My Shift",
+        admin_card_title: "Control Console",
+        admin_card_desc: "Central auditing terminal. Monitor real-time attendance, validate crew deployments, set up automated tax withholding algorithms, and export official payroll PDFs.",
+        admin_btn: "Auditing Terminal",
+        footer_text: "DIGITAL SYSTEMS CONTROL INFRASTRUCTURE"
+    }
+};
+
+// MOTOR DE TRADUCCIÓN ACTIVA
+function changeLanguage(lang) {
+    // Guardar preferencia en la memoria del navegador
+    localStorage.setItem('adl_lang', lang);
+    
+    // Cambiar textos dinámicamente usando el atributo data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+        const key = element.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+            element.textContent = translations[lang][key];
+        }
+    });
+
+    // Cambiar estilos visuales de los botones selectores
+    const btnEs = document.getElementById('btn-es');
+    const btnEn = document.getElementById('btn-en');
+    
+    if (lang === 'es') {
+        btnEs.className = "px-3 py-1.5 rounded-full font-bold transition-all duration-300 bg-amber-500 text-black";
+        btnEn.className = "px-3 py-1.5 rounded-full font-bold transition-all duration-300 text-zinc-400 hover:text-white";
+    } else {
+        btnEn.className = "px-3 py-1.5 rounded-full font-bold transition-all duration-300 bg-sky-500 text-black";
+        btnEs.className = "px-3 py-1.5 rounded-full font-bold transition-all duration-300 text-zinc-400 hover:text-white";
+    }
+}
+
+// Inicialización de idioma (revisa si ya guardó un idioma o usa Español por defecto)
+document.addEventListener('DOMContentLoaded', () => {
+    const savedLang = localStorage.getItem('adl_lang') || 'es';
+    changeLanguage(savedLang);
+});
+
+
+// --- SCRIPT DE ANIMACIONES DE FONDO Y EFECTOS 3D ---
+const grid = document.getElementById('gridBg');
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+const particleArray = [];
+for (let i = 0; i < 90; i++) {
+    particleArray.push({
+        x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+        size: Math.random() * 2.2 + 0.6, 
+        speedX: (Math.random() - 0.5) * 0.25, 
+        speedY: (Math.random() - 0.5) * 0.25, 
+        opacity: Math.random() * 0.5 + 0.2,
+        pulseSpeed: Math.random() * 0.02 + 0.005,
+        pulseDir: Math.random() > 0.5 ? 1 : -1
+    });
+}
+
+function drawLines() {
+    let maxDistance = 130;
+    for (let a = 0; a < particleArray.length; a++) {
+        for (let b = a; b < particleArray.length; b++) {
+            let dx = particleArray[a].x - particleArray[b].x;
+            let dy = particleArray[a].y - particleArray[b].y;
+            let distance = Math.hypot(dx, dy);
+            if (distance < maxDistance) {
+                let opacity = (1 - (distance / maxDistance)) * 0.09;
+                ctx.strokeStyle = `rgba(245, 158, 11, ${opacity})`; ctx.lineWidth = 0.55;
+                ctx.beginPath(); ctx.moveTo(particleArray[a].x, particleArray[a].y); ctx.lineTo(particleArray[b].x, particleArray[b].y); ctx.stroke();
+            }
+        }
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particleArray.forEach(p => {
+        p.x += p.speedX; p.y += p.speedY;
+        if (p.x > canvas.width || p.x < 0) p.speedX = -p.speedX;
+        if (p.y > canvas.height || p.y < 0) p.speedY = -p.speedY;
+        
+        p.opacity += p.pulseSpeed * p.pulseDir;
+        if(p.opacity > 0.75 || p.opacity < 0.15) p.pulseDir = -p.pulseDir;
+
+        ctx.fillStyle = `rgba(255, 145, 0, ${p.opacity})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+    });
+    drawLines(); requestAnimationFrame(animate);
+}
+animate();
+
+document.addEventListener('mousemove', (e) => { 
+    grid.style.setProperty('--mouse-x', `${e.clientX}px`); 
+    grid.style.setProperty('--mouse-y', `${e.clientY}px`); 
+});
+
+const cards = document.querySelectorAll('.tilt-card');
+cards.forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left; 
+        const y = e.clientY - rect.top;  
+        
+        card.style.setProperty('--card-x', `${x}px`);
+        card.style.setProperty('--card-y', `${y}px`);
+        
+        const midpointX = rect.width / 2;
+        const midpointY = rect.height / 2;
+        const tiltX = ((y - midpointY) / midpointY) * -12;
+        const tiltY = ((x - midpointX) / midpointX) * 12;
+        
+        card.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(1.025)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+        card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+    });
+});
+
+function redireccionar(url) {
+    setTimeout(() => { window.location.href = url; }, 180);
+}
+</script>
+</body>
+</html>

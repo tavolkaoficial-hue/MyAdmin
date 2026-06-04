@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyAdmin - Portal de Empleado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=400;600;700;800&family=Space+Grotesk:wght=500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020305; 
+            color: #ffffff;
+            overflow-x: hidden;
+            perspective: 1200px;
+        }
+
+        .font-header { font-family: 'Space Grotesk', sans-serif; }
+
+        h2, h3, h4 {
+            color: #d97706 !important; 
+            letter-spacing: 0.03em;
+        }
+        
+        #particleCanvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .grid-cyber {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(245, 158, 11, 0.015) 1.5px, transparent 1.5px),
+                linear-gradient(90deg, rgba(245, 158, 11, 0.015) 1.5px, transparent 1px);
+            background-size: 60px 60px;
+            background-position: center;
+            mask-image: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), black 20%, transparent 60%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .glass-card-pro {
+            background: linear-gradient(135deg, rgba(22, 26, 36, 0.96) 0%, rgba(14, 17, 24, 0.99) 100%) !important;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 40px 80px rgba(0, 0, 0, 0.9),
+                inset 0 1px 1px rgba(255, 255, 255, 0.15);
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out, border-color 0.4s ease;
+        }
+        .glass-card-pro:hover {
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.95), 0 0 35px rgba(245, 158, 11, 0.15);
+        }
+
+        .sub-panel-industrial {
+            background: rgba(5, 6, 8, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.6);
+        }
+
+        .select-cyber {
+            background: rgba(4, 5, 8, 0.95);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+            color: #ffffff;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        .select-cyber:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.35);
+        }
+        .select-cyber option {
+            background-color: #0b0d13;
+            color: #ffffff;
+        }
+
+        .btn-pro-panel {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-entrada-ultra {
+            background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 6px 0 #044e36, 0 15px 25px rgba(16, 185, 129, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .btn-entrada-ultra:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            border-color: rgba(16, 185, 129, 0.6);
+            box-shadow: 0 8px 0 #044e36, 0 20px 30px rgba(16, 185, 129, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px) translateZ(10px);
+        }
+        .btn-entrada-ultra:active {
+            transform: translateY(5px) translateZ(2px);
+            box-shadow: 0 1px 0 #044e36, 0 4px 10px rgba(16, 185, 129, 0.15);
+        }
+
+        .btn-salida-ultra {
+            background: linear-gradient(135deg, #4c0519 0%, #25010b 100%);
+            border: 1px solid rgba(255, 0, 85, 0.3);
+            box-shadow: 0 6px 0 #3b0212, 0 15px 25px rgba(255, 0, 85, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        .btn-salida-ultra:hover:not(:disabled) {
+            background: linear-gradient(135deg, #ff0055 0%, #d60048 100%);
+            border-color: rgba(255, 0, 85, 0.6);
+            box-shadow: 0 8px 0 #3b0212, 0 20px 30px rgba(255, 0, 85, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px) translateZ(10px);
+        }
+        .btn-salida-ultra:active:not(:disabled) {
+            transform: translateY(5px) translateZ(2px);
+            box-shadow: 0 1px 0 #3b0212, 0 4px 10px rgba(255, 0, 85, 0.15);
+        }
+        .btn-salida-ultra:disabled {
+            background: #1c1d22;
+            border-color: #2e3036;
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Botón regresar minimalista translúcido */
+        .btn-back-cyber {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-back-cyber:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #f59e0b;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
+        }
+
+        .icon-hub {
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .logo-nav-branding {
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.85)) drop-shadow(0 0 25px rgba(245, 158, 11, 0.3));
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .logo-nav-branding:hover {
+            transform: scale(1.03);
+            filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 30px rgba(245, 158, 11, 0.45));
+        }
+
+        @keyframes float-structural-1 {
+            0% { transform: translateY(0px) rotate(0deg) translateZ(0px); }
+            50% { transform: translateY(-30px) rotate(180deg) translateZ(40px); }
+            100% { transform: translateY(0px) rotate(360deg) translateZ(0px); }
+        }
+
+        .meta-shape {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.05;
+            transform-style: preserve-3d;
+            filter: blur(0.5px);
+            z-index: 3;
+        }
+
+        .biometric-ring {
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.3), inset 0 0 20px rgba(245, 158, 11, 0.2);
+        }
+
+        /* SELECTOR DE IDIOMA PREMIUM */
+        .lang-selector {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .lang-selector:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(245, 158, 11, 0.4);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex flex-col justify-between p-4 relative bg-[#020305]">
+
+    <canvas id="particleCanvas"></canvas>
+    <div class="grid-cyber" id="gridBg"></div>
+
+    <div class="meta-shape top-24 left-8 w-16 h-16 border-2 border-dashed border-amber-500 rounded-xl" style="animation: float-structural-1 16s infinite ease-in-out;"></div>
+
+    <nav class="w-full max-w-md mx-auto bg-gradient-to-r from-[#1e2532]/95 to-[#151a24]/95 backdrop-blur-2xl border border-zinc-700/50 rounded-2xl px-4 py-3 flex justify-between items-center shadow-2xl relative z-10">
+        <div class="flex items-center">
+            <img src="img/ADL.png" alt="ADL Skilled Labor & Demolition" class="h-14 w-auto object-contain logo-nav-branding" />
+        </div>
+        <div class="flex items-center space-x-3">
+            <select id="selectEmpleadoActivo" onchange="conmutarOperarioBiometrico(this.value)" class="select-cyber text-[11px] font-bold tracking-wide px-2.5 py-1.5 rounded-xl border">
+                <option value="" data-i18n="dropdown_loading">Cargando plantilla...</option>
+            </select>
+            <div class="lang-selector flex items-center rounded-full p-1 text-[9px] font-mono font-bold">
+                <button onclick="changeLanguage('es')" id="btn-es" class="px-2 py-1 rounded-full transition-all">ES</button>
+                <button onclick="changeLanguage('en')" id="btn-en" class="px-2 py-1 rounded-full transition-all">EN</button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="bloqueCargaApp" class="my-auto text-center py-12 space-y-4 relative z-10">
+        <div class="animate-spin inline-block w-9 h-9 border-[3.5px] border-t-amber-500 border-zinc-800 rounded-full shadow-lg shadow-amber-500/10"></div>
+        <p data-i18n="loading_neural" class="text-xs text-zinc-400 font-mono tracking-wide uppercase">Iniciando Red Neuronal Face ID...</p>
+    </div>
+
+    <main id="moduloPrincipal" class="hidden my-auto w-full max-w-md mx-auto space-y-5 relative z-10">
+        
+        <div class="glass-card-pro rounded-3xl p-5 space-y-4 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-500/40 to-transparent"></div>
+            
+            <div class="flex justify-between items-start border-b border-zinc-800/60 pb-3">
+                <div>
+                    <span data-i18n="card_project_subtitle" class="text-[9px] font-extrabold text-amber-500 uppercase tracking-widest font-mono">Frente de Obra Asignado</span>
+                    <h2 id="txtNombreProyecto" class="text-base font-bold text-white mt-0.5 tracking-tight">Asignando proyecto...</h2>
+                </div>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse mt-1 shadow-lg shadow-emerald-500/50"></span>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="sub-panel-industrial p-3 rounded-xl flex items-start space-x-3">
+                    <span class="text-base mt-0.5">📍</span>
+                    <div>
+                        <span data-i18n="card_location_title" class="block text-[9px] font-bold text-zinc-500 uppercase tracking-wider">Ubicación de Obra</span>
+                        <span id="txtDireccionProyecto" class="text-xs text-zinc-300 font-medium leading-relaxed">Cargando ubicación...</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <span data-i18n="card_schedule_title" class="block text-[9px] font-bold text-zinc-500 uppercase tracking-wider mb-1 px-1">Horario de Operaciones &amp; Consigna</span>
+                    <p id="txtHorarioProyecto" class="w-full sub-panel-industrial p-2.5 rounded-xl text-zinc-300 text-xs font-mono border border-zinc-800 tracking-wide">--:--</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="panelEvidenciaObligatoria" class="hidden glass-card-pro rounded-3xl p-5 space-y-4 border-amber-500/20 shadow-2xl">
+            <div class="border-b border-zinc-800/60 pb-2">
+                <h3 data-i18n="evidence_title" class="text-xs font-black uppercase tracking-widest text-amber-500 font-mono flex items-center gap-2">
+                    <span>📝 Bloque de Evidencia de Jornada</span>
+                </h3>
+                <p data-i18n="evidence_desc" class="text-[10px] text-zinc-400 mt-1">Completa los requisitos para habilitar el botón de salida.</p>
+            </div>
+
+            <div class="space-y-1.5">
+                <label data-i18n="evidence_label_comments" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-1">Novedades o Comentarios de Hoy</label>
+                <textarea id="inputNovedadTexto" oninput="validarRequisitosSalida()" rows="3" 
+                    class="w-full sub-panel-industrial p-3 rounded-xl text-xs text-white outline-none focus:border-amber-500 border border-zinc-800/80 transition-all placeholder-zinc-600 resize-none"
+                    placeholder="Escribe aquí las novedades observadas o el balance de actividades de hoy..."></textarea>
+            </div>
+
+            <div class="space-y-2">
+                <label data-i18n="evidence_label_photos" class="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider px-1">Fotografías de Soporte Obligatorias (2)</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="relative sub-panel-industrial aspect-video rounded-xl border border-dashed border-zinc-700 flex flex-col items-center justify-center p-1 cursor-pointer hover:border-amber-500/40 transition group overflow-hidden">
+                        <input type="file" id="fotoFile1" accept="image/*" capture="environment" onchange="procesarImagenEvidencia(this, 1)" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+                        <img id="imgPreview1" class="absolute inset-0 w-full h-full object-cover hidden z-10">
+                        <div id="metaUi1" class="text-center space-y-1">
+                            <span class="text-lg block group-hover:scale-110 transition-transform">📸</span>
+                            <span data-i18n="photo_placeholder_1" class="text-[9px] font-mono uppercase tracking-tight text-zinc-500 group-hover:text-zinc-300">Foto Obra 1</span>
+                        </div>
+                    </div>
+                    <div class="relative sub-panel-industrial aspect-video rounded-xl border border-dashed border-zinc-700 flex flex-col items-center justify-center p-1 cursor-pointer hover:border-amber-500/40 transition group overflow-hidden">
+                        <input type="file" id="fotoFile2" accept="image/*" capture="environment" onchange="procesarImagenEvidencia(this, 2)" class="absolute inset-0 opacity-0 cursor-pointer z-20">
+                        <img id="imgPreview2" class="absolute inset-0 w-full h-full object-cover hidden z-10">
+                        <div id="metaUi2" class="text-center space-y-1">
+                            <span class="text-lg block group-hover:scale-110 transition-transform">📸</span>
+                            <span data-i18n="photo_placeholder_2" class="text-[9px] font-mono uppercase tracking-tight text-zinc-500 group-hover:text-zinc-300">Foto Obra 2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="bloqueScanner" class="hidden space-y-4">
+            <div class="relative w-full aspect-square max-w-[220px] mx-auto bg-[#050608] rounded-full overflow-hidden border-2 border-amber-500/80 biometric-ring flex items-center justify-center p-1">
+                <video id="videoAsistencia" autoplay muted playsinline class="w-full h-full object-cover rounded-full scale-x-[-1]"></video>
+                <div class="absolute inset-0 border-[2px] border-dashed border-amber-500/20 rounded-full animate-spin" style="animation-duration: 20s;"></div>
+            </div>
+            <p id="txtEstadoScanner" data-i18n="scanner_pointing" class="text-center text-xs text-amber-500 font-mono tracking-wide uppercase animate-pulse">Apunta a tu rostro para validar identidad...</p>
+        </div>
+
+        <div id="bloqueBotones" class="flex flex-col gap-4">
+            <div class="grid grid-cols-2 gap-4">
+                <button id="btnEntradaObra" onclick="activarFlujoBiometrico('Entrada')" class="btn-pro-panel btn-entrada-ultra text-white font-extrabold py-4 px-3 rounded-xl text-xs uppercase tracking-widest flex flex-col items-center justify-center space-y-1">
+                    <div class="icon-hub w-9 h-9 rounded-lg flex items-center justify-center border border-emerald-500/20 mb-1">
+                        <span class="text-lg">📥</span>
+                    </div>
+                    <span data-i18n="btn_clock_in" class="text-[10px] font-black tracking-wider">Entrada Obra</span>
+                </button>
+                
+                <button id="btnSalidaObra" onclick="activarFlujoBiometrico('Salida')" disabled class="btn-pro-panel btn-salida-ultra text-white font-extrabold py-4 px-3 rounded-xl text-xs uppercase tracking-widest flex flex-col items-center justify-center space-y-1">
+                    <div class="icon-hub w-9 h-9 rounded-lg flex items-center justify-center border border-pink-500/20 mb-1">
+                        <span class="text-lg">📤</span>
+                    </div>
+                    <span data-i18n="btn_clock_out" class="text-[10px] font-black tracking-wider">Salida Obra</span>
+                </button>
+            </div>
+
+            <a href="index.html" class="w-full btn-back-cyber text-white font-bold text-[11px] uppercase tracking-widest py-3.5 rounded-xl flex justify-center items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+                <span data-i18n="btn_back">Regresar Atrás</span>
+            </a>
+        </div>
+
+    </main>
+
+    <footer class="text-center py-3 text-[9px] text-zinc-600 font-mono tracking-widest uppercase relative z-10">
+        ADL Skilled Labor • <span data-i18n="footer_text">Geolocalización y Biometría Activas</span>
+    </footer>
+
+    <script>
+        // DICCIONARIO CENTRALIZADO DE TRADUCCIÓN
+        const translations = {
+            es: {
+                dropdown_loading: "Cargando plantilla...",
+                loading_neural: "Iniciando Red Neuronal Face ID...",
+                card_project_subtitle: "Frente de Obra Asignado",
+                card_location_title: "Ubicación de Obra",
+                card_schedule_title: "Horario de Operaciones & Consigna",
+                evidence_title: "📝 Bloque de Evidencia de Jornada",
+                evidence_desc: "Completa los requisitos para habilitar el botón de salida.",
+                evidence_label_comments: "Novedades o Comentarios de Hoy",
+                evidence_label_photos: "Fotografías de Soporte Obligatorias (2)",
+                photo_placeholder_1: "Foto Obra 1",
+                photo_placeholder_2: "Foto Obra 2",
+                scanner_pointing: "Apunta a tu rostro para validar identidad...",
+                btn_clock_in: "Entrada Obra",
+                btn_clock_out: "Salida Obra",
+                btn_back: "Regresar Atrás",
+                footer_text: "Geolocalización y Biometría Activas",
+                
+                // Marcadores dinámicos y alertas
+                placeholder_textarea: "Escribe aquí las novedades observadas o el balance de actividades de hoy...",
+                no_project_title: "Sin Obra Asignada",
+                no_project_desc: "Espera a que el admin te asigne una obra.",
+                assigning_project: "Asignando proyecto...",
+                loading_location: "Cargando ubicación...",
+                faceapi_error: "Error al encender los componentes de Inteligencia Facial.",
+                dropdown_error: "Error cargando personal para conmutador:",
+                api_error: "Error de comunicación con el panel central de MyAdmin.",
+                camera_required: "Se requieren permisos de cámara para poder ingresar a trabajar.",
+                scanner_analyzing: "Analizando fisonomía matemática...",
+                scanner_failed: "¡Fallo de reconocimiento! No veo tu rostro. Ubícate en un lugar con mejor luz.",
+                scanner_gps: "Obteniendo coordenadas de geolocalización...",
+                scanner_server_sync: "Cruzando datos biométricos con el servidor...",
+                alert_success: "¡Acceso Concedido! 😊",
+                alert_denied: "❌ Acceso Denegado:",
+                alert_comm_error: "Error de comunicación con el reloj checador central."
+            },
+            en: {
+                dropdown_loading: "Loading roster...",
+                loading_neural: "Initializing Face ID Neural Network...",
+                card_project_subtitle: "Assigned Jobsite",
+                card_location_title: "Jobsite Location",
+                card_schedule_title: "Operations Schedule & Terms",
+                evidence_title: "📝 Daily Work Log Evidence Block",
+                evidence_desc: "Complete all prerequisites to unlock the clock-out action.",
+                evidence_label_comments: "Today's Notes or Site Comments",
+                evidence_label_photos: "Mandatory Progress Photos (2)",
+                photo_placeholder_1: "Site Photo 1",
+                photo_placeholder_2: "Site Photo 2",
+                scanner_pointing: "Point at your face to validate identity...",
+                btn_clock_in: "Clock In",
+                btn_clock_out: "Clock Out",
+                btn_back: "Go Back",
+                footer_text: "Live GPS & Biometrics Active",
+                
+                // Dynamic placeholders & alerts
+                placeholder_textarea: "Type here any field observations or today's task balance...",
+                no_project_title: "No Jobsite Assigned",
+                no_project_desc: "Wait for management to assign you a jobsite.",
+                assigning_project: "Assigning project...",
+                loading_location: "Loading location...",
+                faceapi_error: "Failed to load Facial Intelligence engines.",
+                dropdown_error: "Error loading workforce roster for selector:",
+                api_error: "Communication error with MyAdmin Central Core.",
+                camera_required: "Camera authorization is mandatory to register attendance.",
+                scanner_analyzing: "Analyzing biometric structural points...",
+                scanner_failed: "Recognition failed! Face not detected. Move to a brighter area.",
+                scanner_gps: "Acquiring live GPS geolocation coordinates...",
+                scanner_server_sync: "Cross-matching biometrics with secure server...",
+                alert_success: "Access Granted! 😊",
+                alert_denied: "❌ Access Denied:",
+                alert_comm_error: "Communication breakdown with central time clock."
+            }
+        };
+
+        let currentLang = 'es';
+
+        // MOTOR ACTIVO PARA CAMBIO DE IDIOMA
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('adl_lang', lang);
+            
+            // Traducir elementos con data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+
+            // Actualizar Marcadores de Entrada Dinámicos (Placeholder)
+            const inputNovedad = document.getElementById("inputNovedadTexto");
+            if (inputNovedad) {
+                inputNovedad.placeholder = translations[lang]['placeholder_textarea'];
+            }
+
+            // Cambiar estilos de los botones selectores
+            const btnEs = document.getElementById('btn-es');
+            const btnEn = document.getElementById('btn-en');
+            
+            if (lang === 'es') {
+                btnEs.className = "px-2 py-1 rounded-full bg-amber-500 text-black";
+                btnEn.className = "px-2 py-1 rounded-full text-zinc-400 hover:text-white";
+            } else {
+                btnEn.className = "px-2 py-1 rounded-full bg-sky-500 text-black";
+                btnEs.className = "px-2 py-1 rounded-full text-zinc-400 hover:text-white";
+            }
+
+            // Forzar refresco de las variables en los textos condicionales si no se han cargado datos aún
+            if (proyectoIdActual === null && document.getElementById("txtNombreProyecto").textContent !== "Asignando proyecto..." && document.getElementById("txtNombreProyecto").textContent !== "Assigning project...") {
+                document.getElementById("txtNombreProyecto").textContent = translations[lang]['no_project_title'];
+                document.getElementById("txtDireccionProyecto").textContent = translations[lang]['no_project_desc'];
+            }
+        }
+
+        const card = document.getElementById('moduloPrincipal');
+        const grid = document.getElementById('gridBg');
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const particleArray = [];
+        const numberOfParticles = 140; 
+
+        class Particle {
+            constructor() { this.init(); }
+            init() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2.5 + 0.8;
+                this.speedX = (Math.random() - 0.5) * 0.95; 
+                this.speedY = (Math.random() - 0.5) * 0.95;
+                this.opacity = Math.random() * 0.65 + 0.35;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            draw() {
+                ctx.save();
+                ctx.fillStyle = `rgba(245, 158, 11, ${this.opacity})`;
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = '#f59e0b';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < numberOfParticles; i++) { particleArray.push(new Particle()); }
+
+        function drawLines() {
+            let maxDistance = 125;
+            for (let a = 0; a < particleArray.length; a++) {
+                for (let b = a; b < particleArray.length; b++) {
+                    let dx = particleArray[a].x - particleArray[b].x;
+                    let dy = particleArray[a].y - particleArray[b].y;
+                    let distance = Math.hypot(dx, dy);
+                    if (distance < maxDistance) {
+                        let opacity = (1 - (distance / maxDistance)) * 0.22;
+                        ctx.strokeStyle = `rgba(245, 158, 11, ${opacity})`;
+                        ctx.lineWidth = 0.7;
+                        ctx.beginPath();
+                        ctx.moveTo(particleArray[a].x, particleArray[a].y);
+                        ctx.lineTo(particleArray[b].x, particleArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            grid.style.setProperty('--mouse-x', `${e.clientX}px`);
+            grid.style.setProperty('--mouse-y', `${e.clientY}px`);
+            const xAxis = (window.innerWidth / 2 - e.clientX) / 40;
+            const yAxis = (window.innerHeight / 2 - e.clientY) / 40;
+            if(card && !card.classList.contains('hidden')) {
+                card.style.transform = `rotateY(${-xAxis}deg) rotateX(${yAxis}deg)`;
+            }
+        });
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particleArray.forEach(p => { p.update(); p.draw(); });
+            drawLines();
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // ========================================================
+        // LOGICA DE CONTROL DE JORNADA & EVIDENCIA OBLIGATORIA
+        // ========================================================
+        const urlParams = new URLSearchParams(window.location.search);
+        let idEmpleadoActual = urlParams.get('id') ? parseInt(urlParams.get('id')) : 7; 
+
+        let tipoAccionActual = ""; 
+        let proyectoIdActual = null;
+        
+        let fotoBase64_1 = null;
+        let fotoBase64_2 = null;
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            // Sincronizar idioma nativo guardado
+            const savedLang = localStorage.getItem('adl_lang') || 'es';
+            changeLanguage(savedLang);
+
+            await cargarModelosFaceAPI();
+            await inicializarListaDesplegableEmpleados();
+            cargarInformacionEmpleado();
+        });
+
+        async function cargarModelosFaceAPI() {
+            try {
+                const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+                await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+                await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+                
+                document.getElementById("bloqueCargaApp").classList.add("hidden");
+                document.getElementById("moduloPrincipal").classList.remove("hidden");
+            } catch (err) {
+                console.error(err);
+                alert(translations[currentLang]['faceapi_error']);
+            }
+        }
+
+        async function inicializarListaDesplegableEmpleados() {
+            const selectElement = document.getElementById("selectEmpleadoActivo");
+            try {
+                const response = await fetch('http://localhost/MyAdmin/obtener_empleados.php');
+                const res = await response.json();
+                if (res.status === 'success' && res.data.length > 0) {
+                    selectElement.innerHTML = "";
+                    res.data.forEach(emp => {
+                        const opt = document.createElement('option');
+                        opt.value = emp.id;
+                        opt.textContent = emp.nombre;
+                        if (emp.id === idEmpleadoActual) opt.selected = true;
+                        selectElement.appendChild(opt);
+                    });
+                }
+            } catch (error) {
+                console.error(translations[currentLang]['dropdown_error'], error);
+            }
+        }
+
+        function conmutarOperarioBiometrico(nuevoId) {
+            if(!nuevoId) return;
+            idEmpleadoActual = parseInt(nuevoId);
+            fotoBase64_1 = null;
+            fotoBase64_2 = null;
+            document.getElementById("inputNovedadTexto").value = "";
+            document.getElementById("imgPreview1").classList.add("hidden");
+            document.getElementById("imgPreview2").classList.add("hidden");
+            document.getElementById("metaUi1").classList.remove("hidden");
+            document.getElementById("metaUi2").classList.remove("hidden");
+            document.getElementById("panelEvidenciaObligatoria").classList.add("hidden");
+            document.getElementById("btnEntradaObra").classList.remove("hidden");
+            document.getElementById("btnSalidaObra").disabled = true;
+            cargarInformacionEmpleado();
+        }
+        window.conmutarOperarioBiometrico = conmutarOperarioBiometrico;
+
+        function cargarInformacionEmpleado() {
+            fetch(`http://localhost/MyAdmin/obtener_info_empleado.php?id=${idEmpleadoActual}`)
+                .then(res => res.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        if (res.proyecto) {
+                            proyectoIdActual = res.proyecto.id_proyecto;
+                            document.getElementById("txtNombreProyecto").textContent = res.proyecto.nombre_proyecto;
+                            document.getElementById("txtDireccionProyecto").textContent = res.proyecto.direccion;
+                            document.getElementById("txtHorarioProyecto").textContent = res.proyecto.horario_estimado;
+                            document.getElementById("bloqueBotones").style.display = "flex"; 
+                            
+                            if (res.ya_marco_entrada) {
+                                document.getElementById("btnEntradaObra").classList.add("hidden");
+                                document.getElementById("panelEvidenciaObligatoria").classList.remove("hidden");
+                            }
+                        } else {
+                            proyectoIdActual = null;
+                            document.getElementById("txtNombreProyecto").textContent = translations[currentLang]['no_project_title'];
+                            document.getElementById("txtDireccionProyecto").textContent = translations[currentLang]['no_project_desc'];
+                            document.getElementById("txtHorarioProyecto").textContent = "--:--";
+                            document.getElementById("bloqueBotones").style.display = "none";
+                        }
+                    } else {
+                        alert(res.message);
+                    }
+                })
+                .catch(() => alert(translations[currentLang]['api_error']));
+        }
+
+        function procesarImagenEvidencia(input, index) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const lector = new FileReader();
+            lector.onload = function(e) {
+                const base64Resultado = e.target.result;
+                if (index === 1) {
+                    fotoBase64_1 = base64Resultado;
+                    document.getElementById("imgPreview1").src = base64Resultado;
+                    document.getElementById("imgPreview1").classList.remove("hidden");
+                    document.getElementById("metaUi1").classList.add("hidden");
+                } else {
+                    fotoBase64_2 = base64Resultado;
+                    document.getElementById("imgPreview2").src = base64Resultado;
+                    document.getElementById("imgPreview2").classList.remove("hidden");
+                    document.getElementById("metaUi2").classList.add("hidden");
+                }
+                validarRequisitosSalida();
+            };
+            lector.readAsDataURL(file);
+        }
+
+        function validarRequisitosSalida() {
+            const textoComentario = document.getElementById("inputNovedadTexto").value.trim();
+            const btnSalida = document.getElementById("btnSalidaObra");
+
+            if (textoComentario.length >= 4 && fotoBase64_1 !== null && fotoBase64_2 !== null) {
+                btnSalida.disabled = false;
+            } else {
+                btnSalida.disabled = true;
+            }
+        }
+
+        function activarFlujoBiometrico(tipo) {
+            tipoAccionActual = tipo;
+            document.getElementById("bloqueBotones").classList.add("hidden");
+            document.getElementById("panelEvidenciaObligatoria").classList.add("hidden");
+            document.getElementById("bloqueScanner").classList.remove("hidden");
+
+            const video = document.getElementById("videoAsistencia");
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(stream => { 
+                    video.srcObject = stream;
+                    setTimeout(escanearRostroEnVivo, 2500);
+                })
+                .catch(() => {
+                    alert(translations[currentLang]['camera_required']);
+                    restablecerInterfaz();
+                });
+        }
+
+        async function escanearRostroEnVivo() {
+            const video = document.getElementById("videoAsistencia");
+            const txtEstado = document.getElementById("txtEstadoScanner");
+
+            txtEstado.textContent = translations[currentLang]['scanner_analyzing'];
+
+            const deteccion = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                                           .withFaceLandmarks()
+                                           .withFaceDescriptor();
+
+            if (!deteccion) {
+                alert(translations[currentLang]['scanner_failed']);
+                restablecerInterfaz();
+                return;
+            }
+
+            const descriptorVivoStr = JSON.stringify(Array.from(deteccion.descriptor));
+            const stream = video.srcObject;
+            if (stream) stream.getTracks().forEach(track => track.stop());
+
+            txtEstado.textContent = translations[currentLang]['scanner_gps'];
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const coordenadaGPS = `${position.coords.latitude},${position.coords.longitude}`;
+                    procesarAsistenciaEnServidor(descriptorVivoStr, coordenadaGPS);
+                },
+                () => {
+                    procesarAsistenciaEnServidor(descriptorVivoStr, "0,0 (Sin Acceso GPS)");
+                },
+                { enableHighAccuracy: true, timeout: 5000 }
+            );
+        }
+
+        function procesarAsistenciaEnServidor(descriptorVivo, gpsDatos) {
+            const txtEstado = document.getElementById("txtEstadoScanner");
+            txtEstado.textContent = translations[currentLang]['scanner_server_sync'];
+
+            let paqueteFotos = "";
+            if (fotoBase64_1 && fotoBase64_2) {
+                paqueteFotos = fotoBase64_1 + "," + fotoBase64_2;
+            }
+
+            const datosEnvio = {
+                id_usuario: idEmpleadoActual, 
+                accion: tipoAccionActual.toLowerCase(), 
+                gps: gpsDatos,
+                descriptor_vivo: descriptorVivo,
+                novedades: document.getElementById("inputNovedadTexto").value.trim(),
+                fotos_combo: paqueteFotos 
+            };
+
+            fetch('http://localhost/MyAdmin/asistencia.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosEnvio)
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    alert(`${translations[currentLang]['alert_success']}\n\n${res.message}\nHora/Time: ${res.hora_registro}`);
+                    
+                    if (tipoAccionActual === "Entrada") {
+                        document.getElementById("btnEntradaObra").classList.add("hidden");
+                        document.getElementById("panelEvidenciaObligatoria").classList.remove("hidden");
+                    } else if (tipoAccionActual === "Salida") {
+                        conmutarOperarioBiometrico(idEmpleadoActual);
+                    }
+                } else {
+                    alert(`${translations[currentLang]['alert_denied']}\n\n${res.message}`);
+                }
+                restablecerInterfaz();
+            })
+            .catch(err => {
+                console.error("Error en fetch:", err);
+                alert(translations[currentLang]['alert_comm_error']);
+                restablecerInterfaz();
+            });
+        }
+
+        function restablecerInterfaz() {
+            document.getElementById("bloqueScanner").classList.add("hidden");
+            document.getElementById("bloqueBotones").classList.remove("hidden");
+            
+            if (document.getElementById("btnEntradaObra").classList.contains("hidden")) {
+                document.getElementById("panelEvidenciaObligatoria").classList.remove("hidden");
+            }
+            
+            document.getElementById("txtEstadoScanner").textContent = translations[currentLang]['scanner_pointing'];
+            const video = document.getElementById("videoAsistencia");
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+            }
+            validarRequisitosSalida();
+        }
+    </script>
+</body>
+</html>
